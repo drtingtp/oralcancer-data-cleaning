@@ -1,0 +1,8 @@
+name: oralcancer-data
+channels:
+  - conda-forge
+dependencies:
+  - arrow-odbc
+  - ipykernel
+  - polars
+  - python
