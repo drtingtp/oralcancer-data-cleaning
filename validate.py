@@ -4,8 +4,8 @@ from pathlib import Path
 
 import polars as pl
 
-from includes import RuleEnum
 import utils
+from includes import RuleEnum
 
 PATH_INPUT = "input"
 PATH_STORE = "store"
@@ -31,22 +31,29 @@ def _get_validate_expr(rule_number: RuleEnum, col_list: list) -> pl.Expr:
   ]
 
 
-def _get_df_validate():
-  return pl.DataFrame(
-    schema={
-      "DISTRICT": pl.Utf8,
-      "LOCATION OF SCREENING": pl.Utf8,
-      "DATESCREEN": pl.Date,
-      "ICNUMBER": pl.Utf8,
-      "fail": pl.Struct({"rule": pl.Utf8, "data": list}),
-    },
-  )
+def _get_df_validate(df: pl.DataFrame | None):
+  if df is None:
+    return pl.DataFrame(
+      schema={
+        "DISTRICT": pl.Utf8,
+        "LOCATION OF SCREENING": pl.Utf8,
+        "DATESCREEN": pl.Date,
+        "ICNUMBER": pl.Utf8,
+        "fail": pl.Struct({"rule": pl.Utf8, "data": list}),
+      },
+    )
+  else:
+    df.clear()
+    return df
 
 
-def _extend_validate(df_validate: pl.DataFrame, new_data: pl.DataFrame):
+def _extend_df_validate(df_validate: pl.DataFrame, new_data: pl.DataFrame):
   if new_data.is_empty():
     return df_validate
   elif df_validate.is_empty():
+    # unable to vstack null dataframes
+    # seems to be a bug
+    # https://github.com/pola-rs/polars/issues/11824
     return pl.concat([df_validate, new_data], how="vertical_relaxed")
   else:
     return pl.concat([df_validate, new_data], how="vertical")
@@ -102,13 +109,57 @@ def _validate_date_r3(
     )
   )
 
-  return _extend_validate(df_validate, df)
+  return _extend_df_validate(df_validate, df)
 
 
-def _validate_dates(
-  df_validate: pl.DataFrame, df_all: pl.DataFrame, df_full_ic: pl.DataFrame
-):
-  return df_validate.pipe(_validate_date_r3, df_full_ic)
+def _validate_date_r4(df_validate: pl.DataFrame, df_all: pl.DataFrame):
+  """
+  Rule: 4 `DATESCREEN` vs `DATE REFERRED` vs `DATE REFERRED QUIT SER`
+  """
+  df = (
+    df_all.select(expr_id_cols, "DATE REFERRED", "DATE REFERRED QUIT SER")
+    .filter(
+      (pl.col("DATE REFERRED") < pl.col("DATESCREEN"))
+      | (pl.col("DATE REFERRED QUIT SER") < pl.col("DATESCREEN"))
+    )
+    .select(
+      _get_validate_expr(
+        RuleEnum.DATESCREEN_VS_DATEREFER, ["DATESCREEN", "DATE REFERRED QUIT SER"]
+      )
+    )
+  )
+  return _extend_df_validate(df_validate, df)
+
+
+def _validate_date_r5(df_validate: pl.DataFrame, df_all: pl.DataFrame):
+  """
+  Rule: 5 `DATE REFERRED` vs `DATE SEEN BY SPECIALIST`
+  """
+  df = df_all.select(expr_id_cols, "DATE REFERRED", "DATE SEEN BY SPECIALIST").filter(
+    (pl.col("DATE SEEN BY SPECIALIST") < pl.col("DATE REFERRED"))
+  )
+  return _extend_df_validate(df_validate, df)
+
+
+def _validate_date_r6(df_validate: pl.DataFrame, df_all: pl.DataFrame):
+  """
+  Rule: 6 `DATE REFERRED QUIT SER` vs `TARIKH TEMUJANJI QUIT SERVICE`
+  """
+  df = (
+    df_all.select(
+      expr_id_cols, "DATE REFERRED QUIT SER", "TARIKH TEMUJANJI QUIT SERVICE"
+    )
+    .filter(
+      (pl.col("TARIKH TEMUJANJI QUIT SERVICE") < pl.col("DATE REFERRED QUIT SER"))
+    )
+    .select(
+      _get_validate_expr(
+        RuleEnum.DATEREFER_QUIT_VS_QUIT_APPT,
+        ["DATE REFERRED QUIT SER", "TARIKH TEMUJANJI QUIT SERVICE"],
+      )
+    )
+  )
+  return _extend_df_validate(df_validate, df)
 
 
 def _validate_r1(df_validate: pl.DataFrame, df_full_ic: pl.DataFrame):
@@ -127,7 +178,7 @@ def _validate_r1(df_validate: pl.DataFrame, df_full_ic: pl.DataFrame):
     )
   )
 
-  return _extend_validate(df_validate, df)
+  return _extend_df_validate(df_validate, df)
 
 
 def _validate_r2(df_validate: pl.DataFrame, df_all: pl.DataFrame):
@@ -143,7 +194,18 @@ def _validate_r2(df_validate: pl.DataFrame, df_all: pl.DataFrame):
       )
     )
   )
-  return _extend_validate(df_validate, df)
+  return _extend_df_validate(df_validate, df)
+
+
+def _validate_dates(
+  df_validate: pl.DataFrame, df_all: pl.DataFrame, df_full_ic: pl.DataFrame
+):
+  return (
+    df_validate.pipe(_validate_date_r3, df_full_ic)
+    .pipe(_validate_date_r4, df_all)
+    .pipe(_validate_date_r5, df_all)
+    .pipe(_validate_date_r6, df_all)
+  )
 
 
 def _validate_others(
@@ -153,13 +215,14 @@ def _validate_others(
 
 
 def main():
+  df_validate = None
   for path in Path(PATH_INPUT).glob("*.accdb"):
     print(f"Validating '{path.stem}'")
     df_all = utils.get_df(path)
     df_full_ic = df_all.filter(pl.col("ICNUMBER").str.contains(r"^\d{12}$"))
 
     (
-      _get_df_validate()
+      _get_df_validate(df_validate)
       .pipe(_validate_dates, df_all, df_full_ic)
       .pipe(_validate_others, df_all, df_full_ic)
       .pipe(_output_df_validate)
