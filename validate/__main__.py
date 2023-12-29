@@ -232,25 +232,21 @@ def _output_df_validate(df_validate: pl.DataFrame, file_name: str):
   df.write_parquet(Path(PATH_STORE).joinpath(file_name + ".parquet"), compression="lz4")
 
 
-def main():
-  df_validate = None
-  for path in Path(PATH_INPUT).glob("*.accdb"):
-    print(f"Validating '{path.stem}'")
-    df_all = utils.get_df(path)
-    df_full_ic = df_all.filter(pl.col("ICNUMBER").str.contains(r"^\d{12}$"))
+# main function
+df_validate = None
+for path in Path(PATH_INPUT).glob("*.accdb"):
+  print(f"Validating '{path.stem}'")
+  df_all = utils.get_df(path)
+  df_full_ic = df_all.filter(pl.col("ICNUMBER").str.contains(r"^\d{12}$"))
 
-    (
-      _get_df_validate(df_validate)
-      .pipe(_validate_dates, df_all, df_full_ic)
-      .pipe(_validate_others, df_all, df_full_ic)
-      .pipe(_output_df_validate, path.stem)
-    )
+  (
+    _get_df_validate(df_validate)
+    .pipe(_validate_dates, df_all, df_full_ic)
+    .pipe(_validate_others, df_all, df_full_ic)
+    .pipe(_output_df_validate, path.stem)
+  )
 
-  _compile_output()
+_compile_output()
 
-  for path in Path(PATH_STORE).glob("*.parquet"):
-    os.unlink(path)
-
-
-if __name__ == "__main__":
-  main()
+for path in Path(PATH_STORE).glob("*.parquet"):
+  os.unlink(path)
