@@ -1,4 +1,5 @@
 import math
+import os
 from datetime import date
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from includes import RuleEnum
 
 PATH_INPUT = "input"
 PATH_STORE = "store"
+PATH_OUTPUT = "output"
 
 # define identifier columns
 expr_id_cols = pl.col("DISTRICT", "LOCATION OF SCREENING", "DATESCREEN", "ICNUMBER")
@@ -57,16 +59,6 @@ def _extend_df_validate(df_validate: pl.DataFrame, new_data: pl.DataFrame):
     return pl.concat([df_validate, new_data], how="vertical_relaxed")
   else:
     return pl.concat([df_validate, new_data], how="vertical")
-  # else:
-  #   return pl.concat([df_validate, new_data], how="vertical_relaxed")
-
-
-def _output_df_validate(df_validate: pl.DataFrame):
-  df_validate.rechunk()
-  with pl.Config(set_fmt_str_lengths=1000):
-    print("output_df_validate:")
-    print(df_validate.unnest("fail"))
-  df_validate.clear()
 
 
 def _validate_date_r3(
@@ -214,6 +206,32 @@ def _validate_others(
   return df_validate.pipe(_validate_r1, df_full_ic).pipe(_validate_r2, df_all)
 
 
+def _compile_output():
+  list_df = []
+
+  file_path = Path(PATH_OUTPUT).joinpath("validate_result.xlsx")
+
+  for item in Path(PATH_STORE).glob("*.parquet"):
+    list_df.append(pl.scan_parquet(item))
+
+  df: pl.LazyFrame = pl.concat(list_df)
+  df.unnest("fail").with_columns(pl.col("data").list.join("; ")).collect().write_excel(
+    file_path
+  )
+
+  print(f"Output saved as {file_path}")
+
+
+def _output_df_validate(df_validate: pl.DataFrame, file_name: str):
+  df = df_validate.rechunk()
+  if df.is_empty():
+    return
+
+  df = df.select(pl.lit(file_name).alias("file"), pl.all())
+
+  df.write_parquet(Path(PATH_STORE).joinpath(file_name + ".parquet"), compression="lz4")
+
+
 def main():
   df_validate = None
   for path in Path(PATH_INPUT).glob("*.accdb"):
@@ -225,8 +243,13 @@ def main():
       _get_df_validate(df_validate)
       .pipe(_validate_dates, df_all, df_full_ic)
       .pipe(_validate_others, df_all, df_full_ic)
-      .pipe(_output_df_validate)
+      .pipe(_output_df_validate, path.stem)
     )
+
+  _compile_output()
+
+  for path in Path(PATH_STORE).glob("*.parquet"):
+    os.unlink(path)
 
 
 if __name__ == "__main__":

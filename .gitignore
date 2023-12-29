@@ -3,5 +3,7 @@
 **/__pycache__
 
 /input/**
+/output/**
+/store/**
 
 !**/.gitkeep
