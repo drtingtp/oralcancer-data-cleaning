@@ -1,5 +1,9 @@
 from enum import Enum
 
+# List: identifier columns
+list_id_cols = ["DISTRICT", "LOCATION OF SCREENING", "DATESCREEN", "ICNUMBER"]
+
+# rule enums
 class RuleEnum(Enum):
   IC_VS_GENDER = 1  # `ICNUMBER` vs `GENDER`
   LESION_VS_REFER_SPECIALIST = 2  # `LESION` vs `REFERAL TO SPECIALIST`

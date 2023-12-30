@@ -1,247 +1,57 @@
-import math
 import os
-from datetime import date
 from pathlib import Path
 
 import polars as pl
 
 import utils
-from includes import RuleEnum
+from validate.general import ValidationGeneral
 
-PATH_INPUT = "input"
-PATH_STORE = "store"
-PATH_OUTPUT = "output"
-
-# define identifier columns
-expr_id_cols = pl.col("DISTRICT", "LOCATION OF SCREENING", "DATESCREEN", "ICNUMBER")
-
-# constants
-this_year = date.today().year
-this_year_p1 = math.floor(this_year / 100)  # first two digits
-this_year_p2 = this_year % 100  # last two digits
-
-
-def _get_validate_expr(rule_number: RuleEnum, col_list: list) -> pl.Expr:
-  return [
-    expr_id_cols,
-    pl.struct(
-      pl.lit(rule_number.name).alias("rule"),
-      pl.concat_list([pl.lit(i) + pl.lit(": ") + pl.col(i) for i in col_list]).alias(
-        "data"
-      ),
-    ).alias("fail"),
-  ]
-
-
-def _get_df_validate(df: pl.DataFrame | None):
-  if df is None:
-    return pl.DataFrame(
-      schema={
-        "DISTRICT": pl.Utf8,
-        "LOCATION OF SCREENING": pl.Utf8,
-        "DATESCREEN": pl.Date,
-        "ICNUMBER": pl.Utf8,
-        "fail": pl.Struct({"rule": pl.Utf8, "data": pl.List(pl.Utf8)}),
-      },
-    )
-  else:
-    df.clear()
-    return df
-
-
-def _extend_df_validate(df_validate: pl.DataFrame, new_data: pl.DataFrame):
-  if new_data.is_empty():
-    return df_validate
-  else:
-    return pl.concat([df_validate, new_data], how="vertical")
-
-
-def _validate_date_r3(
-  df_validate: pl.DataFrame, df_full_ic: pl.DataFrame
-) -> pl.DataFrame:
-  """
-  Rule: 3 `DATEBIRTH` vs `ICNUMBER`
-  """
-  df = (
-    df_full_ic.select(
-      expr_id_cols,
-      "DATEBIRTH",
-      pl.col("ICNUMBER").str.slice(0, 2).cast(pl.Int16).alias("R3_year_p2"),
-    )
-    .with_columns(  # calculate first two digits of birth year from IC
-      pl.when(pl.col("R3_year_p2") > this_year_p2)
-      .then(this_year_p1 - 1)
-      .otherwise(this_year_p1)
-      .cast(pl.Utf8)
-      .alias("R3_year_p1")
-    )
-    .with_columns(  # concat the first two digit with IC number to form full date string
-      (pl.col("R3_year_p1") + pl.col("ICNUMBER").str.slice(0, 6)).alias("R3_datestr"),
-    )
-    .with_columns(  # slice and concat the string, then cast into date
-      pl.concat_str(
-        [
-          pl.col("R3_datestr").str.slice(0, 4),
-          pl.col("R3_datestr").str.slice(4, 2),
-          pl.col("R3_datestr").str.slice(6, 2),
-        ],
-        separator="-",
-      )
-      .str.to_date()
-      .alias("R3_date_from_ic")
-    )
-    .filter(pl.col("DATEBIRTH") != pl.col("R3_date_from_ic"))
-    .select(
-      _get_validate_expr(RuleEnum.IC_VS_DATEBIRTH, ["DATEBIRTH", "R3_date_from_ic"]),
-    )
-  )
-
-  return _extend_df_validate(df_validate, df)
-
-
-def _validate_date_r4(df_validate: pl.DataFrame, df_all: pl.DataFrame):
-  """
-  Rule: 4 `DATESCREEN` vs `DATE REFERRED` vs `DATE REFERRED QUIT SER`
-  """
-  df = (
-    df_all.select(expr_id_cols, "DATE REFERRED", "DATE REFERRED QUIT SER")
-    .filter(
-      (pl.col("DATE REFERRED") < pl.col("DATESCREEN"))
-      | (pl.col("DATE REFERRED QUIT SER") < pl.col("DATESCREEN"))
-    )
-    .select(
-      _get_validate_expr(
-        RuleEnum.DATESCREEN_VS_DATEREFER, ["DATESCREEN", "DATE REFERRED QUIT SER"]
-      )
-    )
-  )
-  return _extend_df_validate(df_validate, df)
-
-
-def _validate_date_r5(df_validate: pl.DataFrame, df_all: pl.DataFrame):
-  """
-  Rule: 5 `DATE REFERRED` vs `DATE SEEN BY SPECIALIST`
-  """
-  df = df_all.select(expr_id_cols, "DATE REFERRED", "DATE SEEN BY SPECIALIST").filter(
-    (pl.col("DATE SEEN BY SPECIALIST") < pl.col("DATE REFERRED"))
-  )
-  return _extend_df_validate(df_validate, df)
-
-
-def _validate_date_r6(df_validate: pl.DataFrame, df_all: pl.DataFrame):
-  """
-  Rule: 6 `DATE REFERRED QUIT SER` vs `TARIKH TEMUJANJI QUIT SERVICE`
-  """
-  df = (
-    df_all.select(
-      expr_id_cols, "DATE REFERRED QUIT SER", "TARIKH TEMUJANJI QUIT SERVICE"
-    )
-    .filter(
-      (pl.col("TARIKH TEMUJANJI QUIT SERVICE") < pl.col("DATE REFERRED QUIT SER"))
-    )
-    .select(
-      _get_validate_expr(
-        RuleEnum.DATEREFER_QUIT_VS_QUIT_APPT,
-        ["DATE REFERRED QUIT SER", "TARIKH TEMUJANJI QUIT SERVICE"],
-      )
-    )
-  )
-  return _extend_df_validate(df_validate, df)
-
-
-def _validate_r1(df_validate: pl.DataFrame, df_full_ic: pl.DataFrame):
-  """
-  Rule: 1 `ICNUMBER` vs `GENDER`
-  """
-  df = (
-    df_full_ic.select(expr_id_cols, "GENDER CODE")
-    .with_columns(
-      (pl.col("GENDER CODE").cast(pl.Int16) % 2).alias("R1_GENDER_mod"),
-      (pl.col("ICNUMBER").str.slice(-1).cast(pl.Int16) % 2).alias("R1_IC_mod"),
-    )
-    .filter(pl.col("R1_GENDER_mod") != pl.col("R1_IC_mod"))
-    .select(
-      _get_validate_expr(RuleEnum.IC_VS_GENDER, ["ICNUMBER", "GENDER CODE"]),
-    )
-  )
-
-  return _extend_df_validate(df_validate, df)
-
-
-def _validate_r2(df_validate: pl.DataFrame, df_all: pl.DataFrame):
-  """
-  Rule: 2 `LESION` vs `REFERAL TO SPECIALIST`
-  """
-  df = (
-    df_all.select(expr_id_cols, "LESION", "REFERAL TO SPECIALIST")
-    .filter(pl.col("LESION") != pl.col("REFERAL TO SPECIALIST"))
-    .select(
-      _get_validate_expr(
-        RuleEnum.LESION_VS_REFER_SPECIALIST, ["LESION", "REFERAL TO SPECIALIST"]
-      )
-    )
-  )
-  return _extend_df_validate(df_validate, df)
-
-
-def _validate_dates(
-  df_validate: pl.DataFrame, df_all: pl.DataFrame, df_full_ic: pl.DataFrame
-):
-  return (
-    df_validate.pipe(_validate_date_r3, df_full_ic)
-    .pipe(_validate_date_r4, df_all)
-    .pipe(_validate_date_r5, df_all)
-    .pipe(_validate_date_r6, df_all)
-  )
-
-
-def _validate_others(
-  df_validate: pl.DataFrame, df_all: pl.DataFrame, df_full_ic: pl.DataFrame
-):
-  return df_validate.pipe(_validate_r1, df_full_ic).pipe(_validate_r2, df_all)
+PATH_INPUT = os.getenv("PATH_INPUT")
+PATH_STORE = os.getenv("PATH_STORE")
+PATH_OUTPUT = os.getenv("PATH_OUTPUT")
 
 
 def _compile_output():
-  list_df = []
+  """Compiles parquet files in store into excel file in output."""
+  list_store = ["general"]
 
-  file_path = Path(PATH_OUTPUT).joinpath("validate_result.xlsx")
+  for store_item in list_store:
+    list_df = []
+    output_file = Path(PATH_OUTPUT).joinpath(f"validation_{store_item}.xlsx")
 
-  for item in Path(PATH_STORE).glob("*.parquet"):
-    list_df.append(pl.scan_parquet(item))
+    for file_path in Path(PATH_STORE).glob(f"{store_item}/*.parquet"):
+      list_df.append(pl.scan_parquet(file_path))
 
-  df: pl.LazyFrame = pl.concat(list_df)
-  df.unnest("fail").with_columns(pl.col("data").list.join("; ")).collect().write_excel(
-    file_path
-  )
+    df: pl.LazyFrame = pl.concat(list_df)
 
-  print(f"Output saved as {file_path}")
+    # unnest and stringify data to be written into excel
+    df.unnest("fail").with_columns(
+      pl.col("data").list.join("; ")
+    ).collect().write_excel(output_file, autofit=True)
 
+    print(f"Output saved as {output_file}")
 
-def _output_df_validate(df_validate: pl.DataFrame, file_name: str):
-  df = df_validate.rechunk()
-  if df.is_empty():
-    return
-
-  df = df.select(pl.lit(file_name).alias("file"), pl.all())
-
-  df.write_parquet(Path(PATH_STORE).joinpath(file_name + ".parquet"), compression="lz4")
+    # clean up store
+    for file_path in Path(PATH_STORE).glob(f"{store_item}/*.parquet"):
+      os.unlink(file_path)
 
 
-# main function
-df_validate = None
-for path in Path(PATH_INPUT).glob("*.accdb"):
-  print(f"Validating '{path.stem}'")
-  df_all = utils.get_df(path)
-  df_full_ic = df_all.filter(pl.col("ICNUMBER").str.contains(r"^\d{12}$"))
+def main():
+  # loop through all *.accdb files and invoke validation classes
+  for path in Path(PATH_INPUT).glob("*.accdb"):
+    print(f"Validating '{path.stem}'")
+    try:
+      lf = utils.get_df(path).lazy()
+    except Exception as e:
+      print(f"Exception occured for get_df(): {path}")
+      print(e)
 
-  (
-    _get_df_validate(df_validate)
-    .pipe(_validate_dates, df_all, df_full_ic)
-    .pipe(_validate_others, df_all, df_full_ic)
-    .pipe(_output_df_validate, path.stem)
-  )
+    ValidationGeneral(lf, path.stem).run_all()
 
-_compile_output()
+    # ValidationLesion(lf, path.stem).run_all()
 
-for path in Path(PATH_STORE).glob("*.parquet"):
-  os.unlink(path)
+  _compile_output()
+
+
+if __name__ == "__main__":
+  main()
