@@ -5,7 +5,7 @@ import polars as pl
 
 from constants import RuleEnum
 
-from .store import store_data, GeneralValidationStore
+from .store import store_data, ValidationStore
 from .decorator import subset_full_ic
 
 # constants
@@ -126,11 +126,23 @@ class ValidationGeneral:
     _validate_date_r6,
   ]
 
+  validation_df_store = "general"
+
+  validation_df_schema = {
+    "DISTRICT": pl.Utf8,
+    "LOCATION OF SCREENING": pl.Utf8,
+    "DATESCREEN": pl.Date,
+    "ICNUMBER": pl.Utf8,
+    "fail": pl.Struct({"rule": pl.Utf8, "data": pl.List(pl.Utf8)}),
+  }
+
   def __init__(self, lf: pl.LazyFrame, file_name: str) -> None:
     self.lf = lf
     self.file_name = file_name
 
   def run_all(self):
-    with GeneralValidationStore(self.file_name) as store_handler:
+    with ValidationStore(
+      self.validation_df_store, self.validation_df_schema, self.file_name
+    ) as store_handler:
       for func in self.list_all_func:
-        store_handler.extend_df(func(self.lf).collect())
+        store_handler.extend_df(func(self.lf))

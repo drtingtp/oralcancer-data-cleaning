@@ -10,7 +10,7 @@ PATH_STORE = os.getenv("PATH_STORE")
 
 
 def store_data(rule_enum: RuleEnum, cols_as_data: list[str]):
-  """Decorator for validation functions to wrap store operations.
+  """Decorator for validation functions to wrap store data.
 
   Parameters
   ----------
@@ -26,13 +26,14 @@ def store_data(rule_enum: RuleEnum, cols_as_data: list[str]):
     def wrapper(lf: pl.LazyFrame):
       result: pl.LazyFrame = func(lf)
 
-      # Select columns (id_cols) and add fail <struct {data, fail}> for store
-      return result.select(
-        pl.col(list_id_cols),
+      return result.with_columns(
         pl.struct(
           pl.lit(rule_enum.name).alias("rule"),
           pl.concat_list(
-            [pl.lit(i) + pl.lit(": ") + pl.col(i) for i in cols_as_data]
+            [
+              pl.concat_str(pl.lit(i + ": "), pl.col(i).cast(pl.Utf8))
+              for i in cols_as_data
+            ]
           ).alias("data"),
         ).alias("fail"),
       )
@@ -42,25 +43,19 @@ def store_data(rule_enum: RuleEnum, cols_as_data: list[str]):
   return decorator
 
 
-class GeneralValidationStore:
+class ValidationStore:
   """Context manager for general validation parquet store.
 
-  This should be activated ??? [WIP]
+  This should be activated by a Validation class in `runall()`.
 
   After exiting the context, `self.df` will be flushed as parquet into the store.
   """
 
-  df_schema = {
-    "DISTRICT": pl.Utf8,
-    "LOCATION OF SCREENING": pl.Utf8,
-    "DATESCREEN": pl.Date,
-    "ICNUMBER": pl.Utf8,
-    "fail": pl.Struct({"rule": pl.Utf8, "data": pl.List(pl.Utf8)}),
-  }
-
-  def __init__(self, file_name: str):
+  def __init__(self, store: str, validation_df_schema: dict, file_name: str):
+    self.store = store
     self.file_name = file_name
-    self.df = pl.DataFrame(schema=self.df_schema)
+    self.df = pl.DataFrame(schema=validation_df_schema)
+    self.cols = [col for col in validation_df_schema.keys()]
 
   def __enter__(self):
     return self
@@ -69,13 +64,21 @@ class GeneralValidationStore:
     if self.df.is_empty():
       return
 
+    # flush self.df into parquet file
     self.df.rechunk().select(
       pl.lit(self.file_name).alias("file"), pl.all()
     ).write_parquet(
-      Path(PATH_STORE).joinpath("general/" + self.file_name + ".parquet"),
+      Path(PATH_STORE).joinpath(f"{self.store}/{self.file_name}.parquet"),
       compression="lz4",
     )
 
-  def extend_df(self, new_output: pl.DataFrame):
-    if not new_output.is_empty():
-      self.df = pl.concat([self.df, new_output], how="vertical")
+  def extend_df(self, lf: pl.LazyFrame):
+    # wrap the lf with select columns required by validation_df_schema
+    # collect
+    new_output = lf.select(self.cols).collect()
+
+    if new_output.is_empty():
+      return
+
+    # concat
+    self.df = pl.concat([self.df, new_output], how="vertical")
