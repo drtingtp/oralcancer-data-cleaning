@@ -10,6 +10,6 @@ def subset_full_ic(func):
   @wraps(func)
   def wrapper(lf: pl.LazyFrame):
     lf = lf.filter(pl.col("ICNUMBER").str.contains(r"^\d{12}$"))
-    return func(lf) 
+    return func(lf)
 
   return wrapper
