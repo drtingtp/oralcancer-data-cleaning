@@ -41,7 +41,7 @@ def _get_df_validate(df: pl.DataFrame | None):
         "LOCATION OF SCREENING": pl.Utf8,
         "DATESCREEN": pl.Date,
         "ICNUMBER": pl.Utf8,
-        "fail": pl.Struct({"rule": pl.Utf8, "data": list}),
+        "fail": pl.Struct({"rule": pl.Utf8, "data": pl.List(pl.Utf8)}),
       },
     )
   else:
@@ -52,11 +52,6 @@ def _get_df_validate(df: pl.DataFrame | None):
 def _extend_df_validate(df_validate: pl.DataFrame, new_data: pl.DataFrame):
   if new_data.is_empty():
     return df_validate
-  elif df_validate.is_empty():
-    # unable to vstack null dataframes
-    # seems to be a bug
-    # https://github.com/pola-rs/polars/issues/11824
-    return pl.concat([df_validate, new_data], how="vertical_relaxed")
   else:
     return pl.concat([df_validate, new_data], how="vertical")
 
