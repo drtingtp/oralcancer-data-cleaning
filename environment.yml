@@ -6,4 +6,5 @@ dependencies:
   - ipykernel
   - polars
   - python
+  - python-dotenv
   - xlsxwriter
