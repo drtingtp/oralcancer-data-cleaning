@@ -5,6 +5,7 @@ import polars as pl
 
 import utils
 from validate.general import ValidationGeneral
+from validate.lesion import ValidationLesion
 
 PATH_INPUT = os.getenv("PATH_INPUT")
 PATH_STORE = os.getenv("PATH_STORE")
@@ -13,7 +14,7 @@ PATH_OUTPUT = os.getenv("PATH_OUTPUT")
 
 def _compile_output():
   """Compiles parquet files in store into excel file in output."""
-  list_store = ["general"]
+  list_store = ["general", "lesion"]
 
   for store_item in list_store:
     list_df = []
@@ -48,7 +49,7 @@ def main():
 
     ValidationGeneral(lf, path.stem).run_all()
 
-    # ValidationLesion(lf, path.stem).run_all()
+    ValidationLesion(lf, path.stem).run_all()
 
   _compile_output()
 

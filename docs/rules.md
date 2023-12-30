@@ -14,6 +14,14 @@
 ## 6 `DATE REFERRED QUIT SER` vs `TARIKH TEMUJANJI QUIT SERVICE`
 * `TARIKH TEMUJANJI QUIT SERVICE` should be later than `DATE REFERRED QUIT SER`
 
+# Validation rules - lesion
+
+## 7 `LESION` vs all lesion-related columns
+[WIP]
+
+## 8 Lesion-related data completeness
+[WIP]
+
 # Validation rules - others
 
 ## 1 `ICNUMBER` vs `GENDER`

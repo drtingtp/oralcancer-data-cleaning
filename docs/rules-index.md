@@ -8,3 +8,5 @@
 |4|[`DATESCREEN` vs `DATE REFERRED` vs `DATE REFERRED QUIT SER`](../docs/rules.md#4-datescreen-vs-date-referred-vs-date-referred-quit-ser)|
 |5|[`DATE REFERRED` vs `DATE SEEN BY SPECIALIST`](../docs/rules.md#5-date-referred-vs-date-seen-by-specialist)|
 |6|[`DATE REFERRED QUIT SER` vs `TARIKH TEMUJANJI QUIT SERVICE`](../docs/rules.md#6-date-referred-quit-ser-vs-tarikh-temujanji-quit-service)|
+|7|[LESION vs all lesion-related columns](../docs/rules.md#7-lesion-vs-all-lesion-related-columns)|
+|8|[Lesion-related data completeness](../docs/rules.md#8-lesion-related-data-completeness)|
