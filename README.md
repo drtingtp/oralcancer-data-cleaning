@@ -5,7 +5,7 @@ This app parses a list of MS Access database files (`input` folder), performs ve
 
 ## Technical details
 * [Architecture of app](docs/architecture.md)
-* [Validation rules](docs/rules.md) ([Index](docs/rules-index.md))
+* [Validation rules](docs/rules.md)
 
 ## Requirements
 * Windows x64 OS

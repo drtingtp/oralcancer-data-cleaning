@@ -1,32 +1,49 @@
-# Validation rules - dates
+# Validation rules
 
-## 3 `DATEBIRTH` vs `ICNUMBER`
-* Applies to rows with full I/C (12 digits)
-* Full `ICNUMBER` should map to `DATEBIRTH` correctly
+## General information
 
-## 4 `DATESCREEN` vs `DATE REFERRED` vs `DATE REFERRED QUIT SER`
-* `DATE REFERRED` (date referred for lesion management) should be later than `DATESCREEN`
-* `DATE REFERRED QUIT SER` (date referred to quit smoking clinic) should be later than `DATESCREEN`
+### [WIP] INCLUSION_LESION_OR_HABIT
+* Subject must have either lesion or habit
+* No opportunistic screening
+* [outbox] What if it is done at high-risk community but no lesion and no habit?
 
-## 5 `DATE REFERRED` vs `DATE SEEN BY SPECIALIST`
-* `DATE SEEN BY SPECIALIST` should be later than `DATE REFERRED`
-
-## 6 `DATE REFERRED QUIT SER` vs `TARIKH TEMUJANJI QUIT SERVICE`
-* `TARIKH TEMUJANJI QUIT SERVICE` should be later than `DATE REFERRED QUIT SER`
-
-# Validation rules - lesion
-
-## 7 `LESION` vs all lesion-related columns
-[WIP]
-
-## 8 Lesion-related data completeness
-[WIP]
-
-# Validation rules - others
-
-## 1 `ICNUMBER` vs `GENDER`
+### IC_VS_GENDER
 * Applies to rows with full I/C (12 digits)
 * Last digit of `ICNUMBER` is evaluated, if it ends with odd number `GENDER` should be `1`; if it ends with even number `GENDER` should be `2`
 
-## 2 `LESION` vs `REFERAL TO SPECIALIST`
+## Dates
+
+### IC_VS_DATEBIRTH
+* Applies to rows with full I/C (12 digits)
+* Full `ICNUMBER` should map to `DATEBIRTH` correctly
+
+### DATESCREEN_VS_DATEREFER
+* `DATE REFERRED` (date referred for lesion management) should be later than `DATESCREEN`
+* `DATE REFERRED QUIT SER` (date referred to quit smoking clinic) should be later than `DATESCREEN`
+
+### DATEREFER_VS_DATE_SEEN_SPECIALIST
+* `DATE SEEN BY SPECIALIST` should be later than `DATE REFERRED`
+
+### DATEREFER_QUIT_VS_QUIT_APPT
+* `TARIKH TEMUJANJI QUIT SERVICE` should be later than `DATE REFERRED QUIT SER`
+
+## Lesion
+
+### LESION_VS_REFER_SPECIALIST
 * (`LESION`, `REFERAL TO SPECIALIST`) should be either (`True`, `True`) or (`False`, `False`)
+
+### LESION_VS_LESION_COLS
+[WIP]
+
+### LESION_COLS_COMPLETENESS
+[WIP]
+
+## Habit
+
+### HABIT_VS_HABIT_COLS
+
+### TOBACCO_COMPLETENESS
+
+### ALCOHOL_COMPLETENESS
+
+### BETEL_COMPLETENESS
