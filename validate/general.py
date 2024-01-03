@@ -6,7 +6,7 @@ import polars as pl
 from constants import RuleEnum
 
 from .store import store_data, ValidationStore
-from .decorator import subset_full_ic
+from .decorator import valid_ic
 
 # constants
 this_year = date.today().year
@@ -23,46 +23,76 @@ def _validate_inclusion_lesion_or_habit(lf: pl.LazyFrame):
   return lf.filter((pl.col("LESION") | pl.col("HABITS")) == False)
 
 
-@subset_full_ic
-@store_data(
-  RuleEnum.IC_VS_DATEBIRTH,
-  ["DATEBIRTH", "R3_date_from_ic"],
-)
-def _validate_date_r3(lf: pl.LazyFrame):
+def _pipe_validate_ic(lf: pl.LazyFrame):
   """
-  Rule: `ICNUMBER` should map to `DATEBIRTH` correctly.
+  Pipe function for ValidationGeneral init.
+  Add columns: datebirth_from_ic, valid_ic_digits, valid_ic_date, valid_ic.
   """
   # year_p1 is first two digits of birth year
   # year_p2 is second two digits of birth year
   return (
     lf.with_columns(  # slice first two digits as year_p2
-      "DATEBIRTH",
-      pl.col("ICNUMBER").str.slice(0, 2).cast(pl.Int16).alias("R3_year_p2"),
+      pl.when(pl.col("ICNUMBER").str.contains(r"^\d{12}$"))
+      .then(True)
+      .otherwise(False)
+      .alias("valid_ic_digits"),
+      pl.col("ICNUMBER").str.slice(0, 2).cast(pl.Int16).alias("year_p2"),
     )
     .with_columns(  # calculate first two digits of birth year from IC
-      pl.when(pl.col("R3_year_p2") > this_year_p2)
+      pl.when(pl.col("year_p2") > this_year_p2)
       .then(this_year_p1 - 1)
       .otherwise(this_year_p1)
       .cast(pl.Utf8)
-      .alias("R3_year_p1")
+      .alias("year_p1"),
     )
-    .with_columns(  # concat the first two digit with IC number to form full date string
-      (pl.col("R3_year_p1") + pl.col("ICNUMBER").str.slice(0, 6)).alias("R3_datestr"),
+    .with_columns(
+      pl.concat_str(  # concat into full date string
+        pl.col("year_p1"),
+        pl.col("ICNUMBER").str.slice(0, 2),
+        pl.lit("-"),
+        pl.col("ICNUMBER").str.slice(2, 2),
+        pl.lit("-"),
+        pl.col("ICNUMBER").str.slice(4, 2),
+      ).alias("datebirth_from_ic")
     )
-    .with_columns(  # slice and concat the string, then cast into date
-      pl.concat_str(
-        [
-          pl.col("R3_datestr").str.slice(0, 4),
-          pl.col("R3_datestr").str.slice(4, 2),
-          pl.col("R3_datestr").str.slice(6, 2),
-        ],
-        separator="-",
+    .drop(["year_p1", "year_p2"])
+    .with_columns(pl.col("datebirth_from_ic").str.to_date(strict=False))
+    .with_columns(
+      pl.when(pl.col("datebirth_from_ic").is_null())
+      .then(False)
+      .otherwise(True)
+      .alias("valid_ic_date")
+    )
+    .with_columns(
+      pl.all_horizontal(pl.col("valid_ic_digits"), pl.col("valid_ic_date")).alias(
+        "valid_ic"
       )
-      .str.to_date()
-      .alias("R3_date_from_ic")
     )
-    .filter(pl.col("DATEBIRTH") != pl.col("R3_date_from_ic"))
   )
+
+
+# validate ic
+@store_data(RuleEnum.VALID_IC, ["valid_ic", "valid_ic_digits", "valid_ic_date"])
+def _validate_ic(lf: pl.LazyFrame):
+  """
+  Rule: Validate `ICNUMBER`
+  - should have 12 digits
+  - first 6 digits should map into date correctly
+  """
+  return lf.filter(pl.col("valid_ic") == False)
+
+
+# date validation
+@valid_ic
+@store_data(
+  RuleEnum.IC_VS_DATEBIRTH,
+  ["DATEBIRTH", "datebirth_from_ic"],
+)
+def _validate_ic_datebirth(lf: pl.LazyFrame):
+  """
+  Rule: `ICNUMBER` should map to `DATEBIRTH` correctly.
+  """
+  return lf.filter(pl.col("DATEBIRTH") != pl.col("datebirth_from_ic"))
 
 
 @store_data(RuleEnum.DATESCREEN_VS_DATEREFER, ["DATESCREEN", "DATE REFERRED QUIT SER"])
@@ -100,7 +130,7 @@ def _validate_date_r6(lf: pl.LazyFrame):
   )
 
 
-@subset_full_ic
+@valid_ic
 @store_data(RuleEnum.IC_VS_GENDER, ["ICNUMBER", "GENDER CODE"])
 def _validate_r1(lf: pl.LazyFrame):
   """
@@ -174,6 +204,8 @@ class ValidationGeneral:
   """
 
   list_all_func = [
+    _validate_ic,
+    _validate_ic_datebirth,
     _validate_inclusion_lesion_or_habit,
     _validate_lesion_telephone,
     _validate_r1,
@@ -196,7 +228,7 @@ class ValidationGeneral:
   }
 
   def __init__(self, lf: pl.LazyFrame, file_name: str) -> None:
-    self.lf = lf
+    self.lf = lf.pipe(_pipe_validate_ic)
     self.file_name = file_name
 
   def run_all(self):

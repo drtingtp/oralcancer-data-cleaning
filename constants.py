@@ -8,6 +8,7 @@ list_id_cols = ["DISTRICT", "LOCATION OF SCREENING", "DATESCREEN", "ICNUMBER"]
 class RuleEnum(Enum):
   # General information
   INCLUSION_LESION_OR_HABIT = auto()
+  VALID_IC = auto()
   IC_VS_GENDER = auto()
   LESION_VS_TELEPHONE = auto()
 
