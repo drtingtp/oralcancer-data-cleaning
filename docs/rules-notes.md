@@ -1,21 +1,5 @@
 # Validation rules notes
 
-Tobacco
-    - if past habit or currently practised need to advise
-    - if referral to quit risk habit is yes, subject should be ready to quit (not vice versa because patient might not want to be referred)
-
-Betel
-    - similar to Tobacco for advise
-    - similar to Tobacco for ready to quit
-
-Alcohol - similar to Betel and Tobacco
-
-Habit(indi) vs Advise
-Habit(indi) vs Ready to quit
-Ready to quit vs Referral to quit services (bool)
-
-Currently no quit risk habit referral for betel and alcohol
-
 Medihist - if ticked should be filled
 
 Famihist - needs to be complete if filled
