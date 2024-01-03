@@ -13,6 +13,7 @@
 ### IC_VS_GENDER
 * Applies to rows with full I/C (12 digits).
 * Last digit of `ICNUMBER` is evaluated, if it ends with odd number `GENDER` should be `1`; if it ends with even number `GENDER` should be `2`.
+* [According to Wikipedia](https://en.wikipedia.org/wiki/Malaysian_identity_card#Structure_of_the_National_Registration_Identity_Card_Number_(NRIC)), this is not true for early batches of MyKad, and the specification was never gazetted.
 
 ### LESION_VS_TELEPHONE
 * If `LESION` is True, subject must provide telephone number.
@@ -57,12 +58,23 @@
 ### HABIT_VS_HABIT_COLS
 * `HABITS` if True, either one of `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` columns should be "1- habit currently practiced" or "2 - past habit now has stopped (minimum 6 months)".
 
-### REFERRAL_QUIT_VS_DATA_REFERRED_QUIT
-* If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` should be filled.
-
 ### TOBACCO_COMPLETENESS
-
 
 ### ALCOHOL_COMPLETENESS
 
 ### BETEL_COMPLETENESS
+
+## Quit service
+
+### READY_QUIT_VS_REFERRAL_QUIT
+* 
+
+## [WIP]REFERRAL_QUIT_TOBACCO_ONLY
+* In WPKLP only: referral to quit services should only be subjects with tobacco habits and ready to quit.
+
+### [WIP]REFERRAL_QUIT_VS_DATE_REFERRED_QUIT
+* If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` should be filled.
+
+### [WIP]ATTEND_FIRST_APPT_VS_INTERVENTION_STATUS
+
+

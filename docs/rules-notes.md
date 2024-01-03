@@ -10,6 +10,10 @@ Betel
 
 Alcohol - similar to Betel and Tobacco
 
+Habit(indi) vs Advise
+Habit(indi) vs Ready to quit
+Ready to quit vs Referral to quit services (bool)
+
 Currently no quit risk habit referral for betel and alcohol
 
 Medihist - if ticked should be filled
