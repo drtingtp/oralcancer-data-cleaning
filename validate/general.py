@@ -131,6 +131,42 @@ def _validate_lesion_telephone(lf: pl.LazyFrame):
   )
 
 
+@store_data(
+  RuleEnum.HABIT_VS_HABIT_COLS, ["HABITS", "TOBACCO", "BBETEL QUID CHEWING", "ALCOHOL"]
+)
+def _validate_habit_vs_habit_cols(lf: pl.LazyFrame):
+  """
+  Rule: `HABITS` if True, either one of `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` should be
+  "1- habit currently practiced" or "2 - past habit now has stopped (minimum 6 months)"
+  """
+  str_habit_false = "0 - No such habit"
+  return (
+    lf.with_columns(
+      pl.when(pl.col("TOBACCO").is_null() | pl.col("TOBACCO").eq(str_habit_false))
+      .then(False)
+      .otherwise(True)
+      .alias("bool_tobacco"),
+      pl.when(
+        pl.col("BBETEL QUID CHEWING").is_null()
+        | pl.col("BBETEL QUID CHEWING").eq(str_habit_false)
+      )
+      .then(False)
+      .otherwise(True)
+      .alias("bool_betel"),
+      pl.when(pl.col("ALCOHOL").is_null() | pl.col("ALCOHOL").eq(str_habit_false))
+      .then(False)
+      .otherwise(True)
+      .alias("bool_alcohol"),
+    )
+    .with_columns(
+      pl.any_horizontal(["bool_tobacco", "bool_betel", "bool_alcohol"]).alias(
+        "bool_any"
+      )
+    )
+    .filter(pl.col("HABITS") != pl.col("bool_any"))
+  )
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -146,6 +182,7 @@ class ValidationGeneral:
     _validate_date_r4,
     _validate_date_r5,
     _validate_date_r6,
+    _validate_habit_vs_habit_cols,
   ]
 
   validation_df_store = "general"

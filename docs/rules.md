@@ -5,7 +5,6 @@
 ### INCLUSION_LESION_OR_HABIT
 * Subject must have either lesion or habit
 * No opportunistic screening
-* [outbox] What if it is done at high-risk community but no lesion and no habit?
 
 ### IC_VS_GENDER
 * Applies to rows with full I/C (12 digits)
@@ -51,8 +50,10 @@
 ## Habit
 
 ### HABIT_VS_HABIT_COLS
+* `HABITS` if True, either one of `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` columns should be "1- habit currently practiced" or "2 - past habit now has stopped (minimum 6 months)"
 
 ### TOBACCO_COMPLETENESS
+
 
 ### ALCOHOL_COMPLETENESS
 
