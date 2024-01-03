@@ -123,15 +123,11 @@ def _validate_r2(lf: pl.LazyFrame):
 @store_data(RuleEnum.LESION_VS_TELEPHONE, ["LESION", "TELEPHONE NO"])
 def _validate_lesion_telephone(lf: pl.LazyFrame):
   """
-  Rule: `LESION` if True, `TELEPHONE NO` should be filled and matches regex pattern `^(6?0[1-9])\d{7,9}$`
+  Rule: `LESION` if True, `TELEPHONE NO` should be filled and matches regex pattern `^(6?0[1-9])\\d{7,9}$`
   """
-  return (
-    lf.with_columns("LESION", "TELEPHONE NO")
-    .filter(
-      (pl.col("LESION") == True)
-      & ~(pl.col("TELEPHONE NO").str.contains(r"^(6?0[1-9])\d{7,9}$"))
-    )
-    .collect()
+  return lf.with_columns("LESION", "TELEPHONE NO").filter(
+    (pl.col("LESION") == True)
+    & ~(pl.col("TELEPHONE NO").str.contains(r"^(6?0[1-9])\d{7,9}$"))
   )
 
 
