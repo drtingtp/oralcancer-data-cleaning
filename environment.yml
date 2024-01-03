@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - arrow-odbc
+  - dotenv
   - ipykernel
   - polars
   - python
