@@ -9,6 +9,7 @@ class RuleEnum(Enum):
   # General information
   INCLUSION_LESION_OR_HABIT = auto()
   IC_VS_GENDER = auto()
+  LESION_VS_TELEPHONE = auto()
 
   # Dates
   IC_VS_DATEBIRTH = auto()

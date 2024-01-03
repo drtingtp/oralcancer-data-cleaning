@@ -14,6 +14,15 @@ this_year_p1 = math.floor(this_year / 100)  # first two digits
 this_year_p2 = this_year % 100  # last two digits
 
 
+# inclusion criteria
+@store_data(RuleEnum.INCLUSION_LESION_OR_HABIT, ["LESION", "HABITS"])
+def _validate_inclusion_lesion_or_habit(lf: pl.LazyFrame):
+  """
+  Rule: Subject must either have LESION or HABITS.
+  """
+  return lf.filter((pl.col("LESION") | pl.col("HABITS")) == False)
+
+
 @subset_full_ic
 @store_data(
   RuleEnum.IC_VS_DATEBIRTH,
@@ -111,6 +120,21 @@ def _validate_r2(lf: pl.LazyFrame):
   return lf.filter(pl.col("LESION") != pl.col("REFERAL TO SPECIALIST"))
 
 
+@store_data(RuleEnum.LESION_VS_TELEPHONE, ["LESION", "TELEPHONE NO"])
+def _validate_lesion_telephone(lf: pl.LazyFrame):
+  """
+  Rule: `LESION` if True, `TELEPHONE NO` should be filled and matches regex pattern `^(6?0[1-9])\d{7,9}$`
+  """
+  return (
+    lf.with_columns("LESION", "TELEPHONE NO")
+    .filter(
+      (pl.col("LESION") == True)
+      & ~(pl.col("TELEPHONE NO").str.contains(r"^(6?0[1-9])\d{7,9}$"))
+    )
+    .collect()
+  )
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -118,6 +142,8 @@ class ValidationGeneral:
   """
 
   list_all_func = [
+    _validate_inclusion_lesion_or_habit,
+    _validate_lesion_telephone,
     _validate_r1,
     _validate_r2,
     _validate_date_r3,

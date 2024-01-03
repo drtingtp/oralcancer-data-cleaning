@@ -1,10 +1,6 @@
 # Validation rules notes
 
 
-Inclusion criteria for screening program - Either LESION | HABIT should be true
-
-Check statecode, district code
-
 If LESION is True, telephone has to be filled - need manual screening to check if telephone is valid
 
 Screening case code - make sure if community program it has to be stated in the clinic
@@ -26,3 +22,7 @@ Betel
 Medihist - if ticked should be filled
 
 Famihist - needs to be complete if filled
+
+
+
+Check statecode, district code - recommend checking manually  - to generate file -> state -> district and count by file window -> anything more than 1 means a file has more than one state -> district combination
