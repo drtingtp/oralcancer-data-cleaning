@@ -56,13 +56,9 @@
 ## Habit
 
 ### HABIT_VS_HABIT_COLS
-* `HABITS` if True, either one of `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` columns should be "1- habit currently practiced" or "2 - past habit now has stopped (minimum 6 months)".
+* valid_completeness: `HABITS` if True, all three `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` should be filled.
+* valid_habits: `HABITS` if True, either one of `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` should be `1- habit currently practiced` or `2 - past habit now has stopped (minimum 6 months)`.
 
-### TOBACCO_COMPLETENESS
-
-### ALCOHOL_COMPLETENESS
-
-### BETEL_COMPLETENESS
 
 ## Quit service
 
