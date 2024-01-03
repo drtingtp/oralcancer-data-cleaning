@@ -42,10 +42,11 @@
 * (`LESION`, `REFERAL TO SPECIALIST`) should be either (`True`, `True`) or (`False`, `False`)
 
 ### LESION_VS_LESION_COLS
-[WIP]
+* If `LESION` is False, `lesion_count` should be `0`
+* If `LESION` is True, `lesion_count` should be more than `0`.
 
 ### LESION_COLS_COMPLETENESS
-[WIP]
+* Completeness check for lesion type, size and site - all must be filled if any one is filled.
 
 ## Habit
 
