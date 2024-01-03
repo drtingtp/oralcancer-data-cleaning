@@ -1,80 +1,19 @@
 import polars as pl
 
-from collections import namedtuple
 from constants import RuleEnum, list_id_cols
 
-from .store import store_data, ValidationStore
+from .lesion_colmap import col_map, chunks
+from .store import ValidationStore, store_data
 
 REPLACE_NA = False
 
-list_lesion_cols = [
-  "TYPE1",
-  "SIZE1",
-  "SITE1A",
-  "SITE1B",
-  "SITE1C",
-  "SITE1D",
-  "TYPE2",
-  "SIZE2",
-  "SITE2A",
-  "SITE2B",
-  "SITE2C",
-  "SITE2D",
-  "TYPE3",
-  "SIZE3",
-  "SITE3A",
-  "SITE3B",
-  "SITE3C",
-  "SITE3D",
-  "OTHER PATHOLOGY",
-  "SIZE OTHER",
-  "SITE OTHER A",
-  "SITE OTHER B",
-  "SITE OTHER C",
-  "SITE OTHER D",
-]
-
-# define namedtuple to generate col_map collection
-ColMap = namedtuple("ColMap", ["id", "type", "size", "site"])
-
 
 def convert_into_lesion_lf(lf: pl.LazyFrame):
-  # calculate chunks
-  # used in generating col_map
-  chunk_size = 6  # 6 descriptors for each lesion
-  col_list_len = len(list_lesion_cols)
+  """
+  Used in ValidationLesion handler on init.
 
-  assert (
-    col_list_len % chunk_size
-  ) == 0, f"len(col_list): {col_list_len} not divisible by chunk_size: {chunk_size}"
-
-  chunks = int(col_list_len / chunk_size)
-
-  # save column names as col_map
-  col_map: list[ColMap] = []
-
-  for n in range(chunks):
-    i = n * chunk_size  # i -- starting index
-    id = None
-    if n <= 2:
-      id = n + 1
-    else:
-      id = "other"
-
-    col_map.append(
-      ColMap(
-        str(id),  # id: 1, 2, other
-        list_lesion_cols[i],  # type
-        list_lesion_cols[i + 1],  # size
-        [  # site: extract 3rd to 6th element in a chunk: i+2 (inclusive) to i+6 (exclusive)
-          list_lesion_cols[j]
-          for j in range(
-            i + 2,
-            i + 6,
-          )
-        ],
-      )
-    )
+  Converts `lf` from general into `lesion_lf` - long-form table where unit of analysis is lesion.
+  """
 
   # principle:
   # 1. pack 6 lesion descriptors into a struct
@@ -184,6 +123,7 @@ def _validate_r8(lf: pl.LazyFrame):
   """
   Rule: Completeness check for lesion type, size and site - all must be filled if any one is filled.
   """
+  # Because NA has no special meaning, it should be treated as null
   # Force the data to go through convert_NA_into_nulls pipe if the REPLACE_NA setting is False
   if REPLACE_NA is False:
     lf = lf.pipe(convert_NA_into_nulls).pipe(compute_lesion_filled)
@@ -233,7 +173,7 @@ class ValidationLesion:
   }
 
   def __init__(self, lf_general: pl.LazyFrame, file_name: str) -> None:
-    # convert lf into long form``
+    # convert lf into long form
     self.lf = (
       lf_general.pipe(convert_into_lesion_lf)
       .pipe(convert_NA_into_nulls)
