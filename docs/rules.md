@@ -37,7 +37,8 @@
 * `DATE SEEN BY SPECIALIST` should be later than `DATE REFERRED`.
 
 ### DATEREFER_QUIT_VS_QUIT_APPT
-* `TARIKH TEMUJANJI QUIT SERVICE` should be later than `DATE REFERRED QUIT SER`.
+* valid_completeness: `DATE REFERRED QUIT SER` if filled, `TARIKH TEMUJANJI QUIT SERVICE` should be filled.
+* valid_sequence: `TARIKH TEMUJANJI QUIT SERVICE` should be later than `DATE REFERRED QUIT SER`.
 
 ## Lesion
 

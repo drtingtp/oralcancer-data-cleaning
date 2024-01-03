@@ -119,14 +119,44 @@ def _validate_date_r5(lf: pl.LazyFrame):
 
 @store_data(
   RuleEnum.DATEREFER_QUIT_VS_QUIT_APPT,
-  ["DATE REFERRED QUIT SER", "TARIKH TEMUJANJI QUIT SERVICE"],
+  [
+    "valid_completeness",
+    "valid_date_sequence",
+    "DATE REFERRED QUIT SER",
+    "TARIKH TEMUJANJI QUIT SERVICE",
+  ],
 )
 def _validate_date_r6(lf: pl.LazyFrame):
   """
-  Rule: `DATE REFERRED QUIT SER` (Quit smoking) should be before `TARIKH TEMUJANJI QUIT SERVICE`
+  Rules:
+  - valid_completeness: `DATE REFERRED QUIT SER` if filled, `TARIKH TEMUJANJI QUIT SERVICE` should be filled.
+  - valid_sequence: `DATE REFERRED QUIT SER` should be before `TARIKH TEMUJANJI QUIT SERVICE`.
   """
-  return lf.filter(
-    (pl.col("TARIKH TEMUJANJI QUIT SERVICE") < pl.col("DATE REFERRED QUIT SER"))
+  return (
+    lf.with_columns(
+      pl.col("DATE REFERRED QUIT SER", "TARIKH TEMUJANJI QUIT SERVICE"),
+      pl.when(pl.col("DATE REFERRED QUIT SER").is_not_null())
+      .then(True)
+      .otherwise(False)
+      .alias("date_referred_filled"),
+      pl.when(pl.col("TARIKH TEMUJANJI QUIT SERVICE").is_not_null())
+      .then(True)
+      .otherwise(False)
+      .alias("appt_date_filled"),
+      pl.when(
+        pl.col("TARIKH TEMUJANJI QUIT SERVICE") >= pl.col("DATE REFERRED QUIT SER")
+      )
+      .then(True)
+      .otherwise(False)
+      .alias("valid_date_sequence"),
+    )
+    .filter(pl.any_horizontal(["date_referred_filled", "appt_date_filled"]))
+    .with_columns(
+      (pl.col("date_referred_filled") == pl.col("appt_date_filled")).alias(
+        "valid_completeness"
+      )
+    )
+    .filter(~pl.all_horizontal("valid_completeness", "valid_date_sequence"))
   )
 
 
