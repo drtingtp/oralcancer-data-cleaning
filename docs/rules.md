@@ -59,8 +59,8 @@
 * valid_completeness: `HABITS` if True, all three `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` should be filled.
 * valid_habits: `HABITS` if True, either one of `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` should be `1- habit currently practiced` or `2 - past habit now has stopped (minimum 6 months)`.
 
-
 Whitelist for habit - valid combinations:
+
 |Habit|Advised|Ready to quit|
 |-|-|-|
 |Null|Null|Null|
@@ -85,9 +85,21 @@ Whitelist for habit - valid combinations:
 * `REFERRAL TO QUIT SERVICES` can be False even when Ready to quit is `Yes`. Subject might have declined referral.
 * In WPKLP only: Only tobacco habits with ready to quit can have `REFERRAL TO QUIT SERVICES` == True.
 
-### REFERRAL_QUIT_VS_DATE_REFERRED_QUIT
-* If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` should be filled, and vice versa.
+### REFERRAL_QUIT_VS_DATE_REFERRED_VS_FIRST_APPT_DATE
+* If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` and `TARIKH TEMUJANJI QUIT SERVICE` should be filled, and vice versa.
+
+### [WIP]ATTEND_FIRST_APPT_NULL_CHECK
+* If the first appointment date for quit service has lapsed, `HADIR QUIT SERVICES` should be filled.
 
 ### [WIP]ATTEND_FIRST_APPT_VS_INTERVENTION_STATUS
+* If `HADIR QUIT SERVICES` is not null, `STATUS INTERVENSI` should be filled.
 
+Whitelist for attend first appointment vs intervention status combinations:
 
+|Attend first appointment|Intervention status|
+|-|-|
+|Null|Null|
+|`TIDAK HADIR`|`II- GAGAL DATANG TEMUJANJI`|
+|`HADIR`|`I- SEDANG MENERIMA RAWATAN`|
+|`HADIR`|`III- GAGAL BERHENTI`|
+|`HADIR`|`IV- BERJAYA BERHENTI SELAMA 6 BULAN`|
