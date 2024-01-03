@@ -24,7 +24,11 @@ def store_data(rule_enum: RuleEnum, cols_as_data: list[str]):
   def decorator(func):
     @wraps(func)
     def wrapper(lf: pl.LazyFrame):
-      result: pl.LazyFrame = func(lf)
+      result = func(lf)
+
+      assert (
+        type(result) == pl.LazyFrame
+      ), f"{func.__name__}() did not return a LazyFrame"
 
       return result.with_columns(
         pl.struct(
