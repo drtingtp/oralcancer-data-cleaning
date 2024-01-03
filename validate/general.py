@@ -321,6 +321,20 @@ def _validate_alcohol(lf: pl.LazyFrame):
   )
 
 
+@store_data(
+  RuleEnum.REFERRAL_QUIT_VS_READY_QUIT, ["TOBACCO QUIT", "REFERRAL TO QUIT SERVICES"]
+)
+def _validate_referral_quit_vs_ready_quit(lf: pl.LazyFrame):
+  return lf.with_columns(
+    pl.when(pl.col("TOBACCO QUIT") == "Yes")
+    .then(True)
+    .otherwise(False)
+    .alias("tobacco_quit")
+  ).filter(
+    (pl.col("REFERRAL TO QUIT SERVICES") == True) & (pl.col("tobacco_quit") == False)
+  )
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -341,6 +355,7 @@ class ValidationGeneral:
     _validate_tobacco,
     _validate_betel,
     _validate_alcohol,
+    _validate_referral_quit_vs_ready_quit,
     _validate_referral_vs_referral_date,
   ]
 

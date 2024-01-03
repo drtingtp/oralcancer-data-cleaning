@@ -29,3 +29,6 @@ class RuleEnum(Enum):
   TOBACCO_TALLINESS = auto()
   ALCOHOL_TALLINESS = auto()
   BETEL_TALLINESS = auto()
+
+  # Quit services
+  REFERRAL_QUIT_VS_READY_QUIT = auto()

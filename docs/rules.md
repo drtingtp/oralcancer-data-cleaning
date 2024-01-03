@@ -80,11 +80,10 @@ Whitelist for habit - valid combinations:
 
 ## Quit service
 
-### READY_QUIT_VS_REFERRAL_QUIT
-* 
-
-## [WIP]REFERRAL_QUIT_TOBACCO_ONLY
-* In WPKLP only: referral to quit services should only be subjects with tobacco habits and ready to quit.
+### REFERRAL_QUIT_VS_READY_QUIT
+* If `REFERRAL TO QUIT SERVICES` is True, either one of the habits' Ready to quit status should be `Yes`.
+* `REFERRAL TO QUIT SERVICES` can be False even when Ready to quit is `Yes`. Subject might have declined referral.
+* In WPKLP only: Only tobacco habits with ready to quit can have `REFERRAL TO QUIT SERVICES` == True.
 
 ### [WIP]REFERRAL_QUIT_VS_DATE_REFERRED_QUIT
 * If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` should be filled.
