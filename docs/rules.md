@@ -60,6 +60,24 @@
 * valid_habits: `HABITS` if True, either one of `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` should be `1- habit currently practiced` or `2 - past habit now has stopped (minimum 6 months)`.
 
 
+Whitelist for habit - valid combinations:
+|Habit|Advised|Ready to quit|
+|-|-|-|
+|Null|Null|Null|
+|`0 - No such habit`|Null|Null|
+|`1- habit currently practiced`|`Yes`|`Yes`|
+|`1- habit currently practiced`|`Yes`|`No`|
+|`2 - past habit now has stopped (minimum 6 months)`|`Yes`|Null|
+
+### TOBACCO_TALLINESS
+* Refer to whitelist
+
+### BETEL_TALLINESS
+* Refer to whitelist
+
+### ALCOHOL_TALLINESS
+* Refer to whitelist
+
 ## Quit service
 
 ### READY_QUIT_VS_REFERRAL_QUIT

@@ -26,6 +26,6 @@ class RuleEnum(Enum):
   # Habit
   HABIT_VS_HABIT_COLS = auto()
   REFERRAL_QUIT_VS_DATA_REFERRED_QUIT = auto()
-  TOBACCO_COMPLETENESS = auto()
-  ALCOHOL_COMPLETENESS = auto()
-  BETEL_COMPLETENESS = auto()
+  TOBACCO_TALLINESS = auto()
+  ALCOHOL_TALLINESS = auto()
+  BETEL_TALLINESS = auto()

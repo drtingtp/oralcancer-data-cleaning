@@ -12,6 +12,13 @@ from .decorator import valid_ic
 this_year = date.today().year
 this_year_p1 = math.floor(this_year / 100)  # first two digits
 this_year_p2 = this_year % 100  # last two digits
+habit_whitelist = [
+  "Null|Null|Null",
+  "0 - No such habit|Null|Null",
+  "1- habit currently practiced|Yes|Yes",
+  "1- habit currently practiced|Yes|No",
+  "2 - past habit now has stopped (minimum 6 months)|Yes|Null",
+]
 
 
 # inclusion criteria
@@ -270,6 +277,50 @@ def _validate_referral_vs_referral_date(lf: pl.LazyFrame):
   ).filter((pl.col("REFERRAL TO QUIT SERVICES") != pl.col("has_referred_date")))
 
 
+@store_data(RuleEnum.TOBACCO_TALLINESS, ["invalid_combination"])
+def _validate_tobacco(lf: pl.LazyFrame):
+  habit_cols = ["TOBACCO", "TOBACCO_ADVISED", "TOBACCO QUIT"]
+  return (
+    lf.with_columns(pl.col(habit_cols).fill_null("Null"))
+    .with_columns(
+      pl.concat_str(pl.col(habit_cols), separator="|").alias("invalid_combination")
+    )
+    .filter(~pl.col("invalid_combination").is_in(habit_whitelist))
+  )
+
+
+@store_data(RuleEnum.BETEL_TALLINESS, ["invalid_combination"])
+def _validate_betel(lf: pl.LazyFrame):
+  habit_cols = [
+    "BBETEL QUID CHEWING",
+    "BBETEL QUID CHEWING ADVISED",
+    "BBETEL QUID CHEWING QUIT",
+  ]
+  return (
+    lf.with_columns(pl.col(habit_cols).fill_null("Null"))
+    .with_columns(
+      pl.concat_str(pl.col(habit_cols), separator="|").alias("invalid_combination")
+    )
+    .filter(~pl.col("invalid_combination").is_in(habit_whitelist))
+  )
+
+
+@store_data(RuleEnum.ALCOHOL_TALLINESS, ["invalid_combination"])
+def _validate_alcohol(lf: pl.LazyFrame):
+  habit_cols = [
+    "ALCOHOL",
+    "ALCOHOL ADVISED",
+    "ALCOHOL QUIT",
+  ]
+  return (
+    lf.with_columns(pl.col(habit_cols).fill_null("Null"))
+    .with_columns(
+      pl.concat_str(pl.col(habit_cols), separator="|").alias("invalid_combination")
+    )
+    .filter(~pl.col("invalid_combination").is_in(habit_whitelist))
+  )
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -287,6 +338,9 @@ class ValidationGeneral:
     _validate_date_r5,
     _validate_date_r6,
     _validate_habit_vs_habit_cols,
+    _validate_tobacco,
+    _validate_betel,
+    _validate_alcohol,
     _validate_referral_vs_referral_date,
   ]
 
