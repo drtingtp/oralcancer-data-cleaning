@@ -197,6 +197,22 @@ def _validate_habit_vs_habit_cols(lf: pl.LazyFrame):
   )
 
 
+@store_data(
+  RuleEnum.REFERRAL_QUIT_VS_DATA_REFERRED_QUIT,
+  ["REFERRAL TO QUIT SERVICES", "has_referred_date"],
+)
+def _validate_referral_vs_referral_date(lf: pl.LazyFrame):
+  """
+  Rule: If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` should be filled, and vice versa.
+  """
+  return lf.with_columns(
+    pl.when(pl.col("DATE REFERRED QUIT SER").is_null())
+    .then(False)
+    .otherwise(True)
+    .alias("has_referred_date")
+  ).filter((pl.col("REFERRAL TO QUIT SERVICES") != pl.col("has_referred_date")))
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -210,11 +226,11 @@ class ValidationGeneral:
     _validate_lesion_telephone,
     _validate_r1,
     _validate_r2,
-    _validate_date_r3,
     _validate_date_r4,
     _validate_date_r5,
     _validate_date_r6,
     _validate_habit_vs_habit_cols,
+    _validate_referral_vs_referral_date,
   ]
 
   validation_df_store = "general"

@@ -9,7 +9,7 @@ from constants import RuleEnum
 PATH_STORE = os.getenv("PATH_STORE")
 
 
-def store_data(rule_enum: RuleEnum, cols_as_data: list[str]):
+def store_data(rule_enum: RuleEnum, cols_as_data: list[str] = []):
   """Decorator for validation functions to wrap store data.
 
   Parameters
