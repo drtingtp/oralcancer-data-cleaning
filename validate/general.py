@@ -262,10 +262,10 @@ def _validate_habit_vs_habit_cols(lf: pl.LazyFrame):
 
 
 @store_data(
-  RuleEnum.REFERRAL_QUIT_VS_DATA_REFERRED_QUIT,
+  RuleEnum.REFERRAL_QUIT_VS_DATE_REFERRED_QUIT,
   ["REFERRAL TO QUIT SERVICES", "has_referred_date"],
 )
-def _validate_referral_vs_referral_date(lf: pl.LazyFrame):
+def _validate_referral_quit_vs_date_referral_quit(lf: pl.LazyFrame):
   """
   Rule: If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` should be filled, and vice versa.
   """
@@ -356,7 +356,7 @@ class ValidationGeneral:
     _validate_betel,
     _validate_alcohol,
     _validate_referral_quit_vs_ready_quit,
-    _validate_referral_vs_referral_date,
+    _validate_referral_quit_vs_date_referral_quit,
   ]
 
   validation_df_store = "general"
