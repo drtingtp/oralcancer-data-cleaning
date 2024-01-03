@@ -112,6 +112,8 @@ def convert_into_lesion_lf(lf: pl.LazyFrame):
 def convert_NA_into_nulls(lf: pl.LazyFrame):
   """Conditionally replace N/A data points with nulls.
 
+  Used as a pl.DataFrame.pipe() parameter.
+
   Notes:
 
   `0 - not applicable` in `type` and `size`
@@ -130,6 +132,13 @@ def convert_NA_into_nulls(lf: pl.LazyFrame):
 
 
 def compute_lesion_filled(lf: pl.LazyFrame):
+  """
+  Computer the `lesion_filled` column based on the 6 lesion descriptors.
+
+  Value is `1` if any is filled, `0` if all 6 columns are `null`.
+
+  Used as a pl.DataFrame.pipe() parameter.
+  """
   return lf.with_columns(
     pl.when(
       pl.any_horizontal(
@@ -157,7 +166,7 @@ def compute_lesion_filled(lf: pl.LazyFrame):
 )
 def _validate_r7(lf: pl.LazyFrame):
   """
-  Rule: 7 LESION vs all lesion-related columns
+  Rule: If `LESION` is False, `lesion_count` should be `0`; If `LESION` is True, `lesion_count` should be more than `0`.
   """
   return lf.with_columns(
     pl.col("lesion_filled").sum().over(list_id_cols).alias("lesion_count")
@@ -173,9 +182,9 @@ def _validate_r7(lf: pl.LazyFrame):
 )
 def _validate_r8(lf: pl.LazyFrame):
   """
-  Rule: 8 Lesion-related columns completeless
+  Rule: Completeness check for lesion type, size and site - all must be filled if any one is filled.
   """
-  # Forcing the data to go through pipes if the REPLACE_NA setting is False
+  # Force the data to go through convert_NA_into_nulls pipe if the REPLACE_NA setting is False
   if REPLACE_NA is False:
     lf = lf.pipe(convert_NA_into_nulls).pipe(compute_lesion_filled)
   return (

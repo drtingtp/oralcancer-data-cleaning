@@ -4,7 +4,7 @@ from pathlib import Path
 
 import polars as pl
 
-from constants import RuleEnum, list_id_cols
+from constants import RuleEnum
 
 PATH_STORE = os.getenv("PATH_STORE")
 
@@ -44,11 +44,13 @@ def store_data(rule_enum: RuleEnum, cols_as_data: list[str]):
 
 
 class ValidationStore:
-  """Context manager for general validation parquet store.
+  """Context manager for validation parquet store.
 
   This should be activated by a Validation class in `runall()`.
 
-  After exiting the context, `self.df` will be flushed as parquet into the store.
+  Upon entering, a dataframe (self.df) is created to log validation results.
+
+  Upon exiting, `self.df` will be flushed as parquet into the store.
   """
 
   def __init__(self, store: str, validation_df_schema: dict, file_name: str):
@@ -64,10 +66,10 @@ class ValidationStore:
     if self.df.is_empty():
       return
 
-    # flush self.df into parquet file
-    self.df.rechunk().select(
-      pl.lit(self.file_name).alias("file"), pl.all()
-    ).write_parquet(
+    self.df.rechunk().select(  # wrap file name as first column
+      pl.lit(self.file_name).alias("file"),
+      pl.all(),
+    ).write_parquet(  # flush self.df into parquet file
       Path(PATH_STORE).joinpath(f"{self.store}/{self.file_name}.parquet"),
       compression="lz4",
     )

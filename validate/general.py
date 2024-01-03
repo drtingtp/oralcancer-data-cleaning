@@ -30,7 +30,7 @@ def _validate_inclusion_lesion_or_habit(lf: pl.LazyFrame):
 )
 def _validate_date_r3(lf: pl.LazyFrame):
   """
-  Rule: 3 `DATEBIRTH` vs `ICNUMBER`
+  Rule: `ICNUMBER` should map to `DATEBIRTH` correctly.
   """
   # year_p1 is first two digits of birth year
   # year_p2 is second two digits of birth year
@@ -68,7 +68,7 @@ def _validate_date_r3(lf: pl.LazyFrame):
 @store_data(RuleEnum.DATESCREEN_VS_DATEREFER, ["DATESCREEN", "DATE REFERRED QUIT SER"])
 def _validate_date_r4(lf: pl.LazyFrame):
   """
-  Rule: 4 `DATESCREEN` vs `DATE REFERRED` vs `DATE REFERRED QUIT SER`
+  Rule: `DATESCREEN` should be before `DATE REFERRED` (OS/OMOP) and `DATE REFERRED QUIT SER` (Quit smoking)
   """
   return lf.filter(
     (pl.col("DATE REFERRED") < pl.col("DATESCREEN"))
@@ -82,7 +82,7 @@ def _validate_date_r4(lf: pl.LazyFrame):
 )
 def _validate_date_r5(lf: pl.LazyFrame):
   """
-  Rule: 5 `DATE REFERRED` vs `DATE SEEN BY SPECIALIST`
+  Rule: `DATE REFERRED` (OS/OMOP) should be before `DATE SEEN BY SPECIALIST`
   """
   return lf.filter((pl.col("DATE SEEN BY SPECIALIST") < pl.col("DATE REFERRED")))
 
@@ -93,7 +93,7 @@ def _validate_date_r5(lf: pl.LazyFrame):
 )
 def _validate_date_r6(lf: pl.LazyFrame):
   """
-  Rule: 6 `DATE REFERRED QUIT SER` vs `TARIKH TEMUJANJI QUIT SERVICE`
+  Rule: `DATE REFERRED QUIT SER` (Quit smoking) should be before `TARIKH TEMUJANJI QUIT SERVICE`
   """
   return lf.filter(
     (pl.col("TARIKH TEMUJANJI QUIT SERVICE") < pl.col("DATE REFERRED QUIT SER"))
@@ -104,7 +104,7 @@ def _validate_date_r6(lf: pl.LazyFrame):
 @store_data(RuleEnum.IC_VS_GENDER, ["ICNUMBER", "GENDER CODE"])
 def _validate_r1(lf: pl.LazyFrame):
   """
-  Rule: 1 `ICNUMBER` vs `GENDER`
+  Rule: `ICNUMBER` should tally with subject's `GENDER CODE`
   """
   return lf.with_columns(
     (pl.col("GENDER CODE").cast(pl.Int16) % 2).alias("R1_GENDER_mod"),
@@ -115,7 +115,7 @@ def _validate_r1(lf: pl.LazyFrame):
 @store_data(RuleEnum.LESION_VS_REFER_SPECIALIST, ["LESION", "REFERAL TO SPECIALIST"])
 def _validate_r2(lf: pl.LazyFrame):
   """
-  Rule: 2 `LESION` vs `REFERAL TO SPECIALIST`
+  Rule: `LESION` if True, `REFERAL TO SPECIALIST` should be True, vice versa for `LESION` == False
   """
   return lf.filter(pl.col("LESION") != pl.col("REFERAL TO SPECIALIST"))
 
@@ -138,7 +138,7 @@ def _validate_lesion_telephone(lf: pl.LazyFrame):
 class ValidationGeneral:
   """Validation object
 
-  `run_all` invokes relevant store generation class using context manager
+  `run_all` invokes relevant store generation class using a ValidationStore context manager
   """
 
   list_all_func = [
