@@ -18,18 +18,22 @@ class RuleEnum(Enum):
   DATEREFER_VS_DATE_SEEN_SPECIALIST = auto()
   DATEREFER_QUIT_VS_QUIT_APPT = auto()
 
-  # Lesion
-  LESION_VS_REFER_SPECIALIST = auto()
-  LESION_VS_LESION_COLS = auto()
-  LESION_COLS_COMPLETENESS = auto()
-
   # Habit
   HABIT_VS_HABIT_COLS = auto()
   TOBACCO_TALLINESS = auto()
   ALCOHOL_TALLINESS = auto()
   BETEL_TALLINESS = auto()
 
-  # Quit services
+  # History
+  MEDIHIST_COMPLETENESS = auto()
+  FAMIHISTCANCER_COMPLETENESS = auto()
+
+  # Lesion
+  LESION_VS_REFER_SPECIALIST = auto()
+  LESION_VS_LESION_COLS = auto()
+  LESION_COLS_COMPLETENESS = auto()
+
+  # Quit services (Appendix 5A)
   REFERRAL_QUIT_VS_READY_QUIT = auto()
   REFERRAL_QUIT_VS_DATE_REFERRED_VS_FIRST_APPT_DATE = auto()
   ATTEND_FIRST_APPT_NULL_CHECK = auto()

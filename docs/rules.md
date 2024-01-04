@@ -1,5 +1,6 @@
 # Validation rules
 
+
 ## General information
 
 ### INCLUSION_LESION_OR_HABIT
@@ -24,6 +25,7 @@
     * Followed by 7 to 9 digits
     * End `$`
 
+
 ## Dates
 
 ### IC_VS_DATEBIRTH
@@ -41,17 +43,6 @@
 * valid_completeness: `DATE REFERRED QUIT SER` if filled, `TARIKH TEMUJANJI QUIT SERVICE` should be filled.
 * valid_sequence: `TARIKH TEMUJANJI QUIT SERVICE` should be later than `DATE REFERRED QUIT SER`.
 
-## Lesion
-
-### LESION_VS_REFER_SPECIALIST
-* (`LESION`, `REFERAL TO SPECIALIST`) should be either (`True`, `True`) or (`False`, `False`).
-
-### LESION_VS_LESION_COLS
-* If `LESION` is False, `lesion_count` should be `0`.
-* If `LESION` is True, `lesion_count` should be more than `0`.
-
-### LESION_COLS_COMPLETENESS
-* Completeness check for lesion type, size and site - all must be filled if any one is filled.
 
 ## Habit
 
@@ -78,7 +69,34 @@ Whitelist: Valid combinations for habit descriptor (tobacco, betel quid chewing,
 ### ALCOHOL_TALLINESS
 * Refer to whitelist
 
-## Quit service
+
+## History
+
+### [WIP] MEDIHIST_COMPLETENESS
+
+
+### [WIP] FAMIHISTCANCER_COMPLETENESS
+
+
+## Lesion
+
+### LESION_VS_REFER_SPECIALIST
+* (`LESION`, `REFERAL TO SPECIALIST`) should be either (`True`, `True`) or (`False`, `False`).
+
+### LESION_VS_LESION_COLS
+* If `LESION` is False, `lesion_count` should be `0`.
+* If `LESION` is True, `lesion_count` should be more than `0`.
+
+### LESION_COLS_COMPLETENESS
+* Completeness check for lesion type, size and site - all must be filled if any one is filled.
+
+
+## Additional details
+
+### [WIP] LESION_VS_EDUCATION
+
+
+## Quit service (Appendix 5A)
 
 ### REFERRAL_QUIT_VS_READY_QUIT
 * If `REFERRAL TO QUIT SERVICES` is True, either one of the habits' Ready to quit status should be `Yes`.
