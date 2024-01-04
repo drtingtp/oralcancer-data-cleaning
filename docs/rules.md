@@ -59,7 +59,7 @@
 * valid_completeness: `HABITS` if True, all three `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` should be filled.
 * valid_habits: `HABITS` if True, either one of `TOBACCO`, `BBETEL QUID CHEWING`, `ALCOHOL` should be `1- habit currently practiced` or `2 - past habit now has stopped (minimum 6 months)`.
 
-Whitelist for habit - valid combinations:
+Whitelist: Valid combinations for habit descriptor (tobacco, betel quid chewing, alcohol):
 
 |Habit|Advised|Ready to quit|
 |-|-|-|
@@ -94,7 +94,7 @@ Whitelist for habit - valid combinations:
 ### [WIP]ATTEND_FIRST_APPT_VS_INTERVENTION_STATUS
 * If `HADIR QUIT SERVICES` is not null, `STATUS INTERVENSI` should be filled.
 
-Whitelist for attend first appointment vs intervention status combinations:
+Whitelist: Valid combinations for attend first appointment vs intervention status:
 
 |Attend first appointment|Intervention status|
 |-|-|

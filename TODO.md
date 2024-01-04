@@ -2,6 +2,7 @@
 * Clarify what to do with not-applicable coding
 
 ## On app
+* rule for date within observation window
 * fill in docstring for general validation
 * test data for all rules
 
