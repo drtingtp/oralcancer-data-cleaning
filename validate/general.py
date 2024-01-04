@@ -261,22 +261,6 @@ def _validate_habit_vs_habit_cols(lf: pl.LazyFrame):
   )
 
 
-@store_data(
-  RuleEnum.REFERRAL_QUIT_VS_DATE_REFERRED_QUIT,
-  ["REFERRAL TO QUIT SERVICES", "has_referred_date"],
-)
-def _validate_referral_quit_vs_date_referral_quit(lf: pl.LazyFrame):
-  """
-  Rule: If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` should be filled, and vice versa.
-  """
-  return lf.with_columns(
-    pl.when(pl.col("DATE REFERRED QUIT SER").is_null())
-    .then(False)
-    .otherwise(True)
-    .alias("has_referred_date")
-  ).filter((pl.col("REFERRAL TO QUIT SERVICES") != pl.col("has_referred_date")))
-
-
 @store_data(RuleEnum.TOBACCO_TALLINESS, ["invalid_combination"])
 def _validate_tobacco(lf: pl.LazyFrame):
   habit_cols = ["TOBACCO", "TOBACCO_ADVISED", "TOBACCO QUIT"]
@@ -332,6 +316,30 @@ def _validate_referral_quit_vs_ready_quit(lf: pl.LazyFrame):
     .alias("tobacco_quit")
   ).filter(
     (pl.col("REFERRAL TO QUIT SERVICES") == True) & (pl.col("tobacco_quit") == False)
+  )
+
+
+@store_data(
+  RuleEnum.REFERRAL_QUIT_VS_DATE_REFERRED_VS_FIRST_APPT_DATE,
+  ["REFERRAL TO QUIT SERVICES", "has_referred_date", "has_appt_date"],
+)
+def _validate_referral_quit_vs_date_referral_quit(lf: pl.LazyFrame):
+  """
+  Rule: If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` and `TARIKH TEMUJANJI QUIT SERVICE`
+  should be filled, and vice versa.
+  """
+  return lf.with_columns(
+    pl.when(pl.col("DATE REFERRED QUIT SER").is_null())
+    .then(False)
+    .otherwise(True)
+    .alias("has_referred_date"),
+    pl.when(pl.col("TARIKH TEMUJANJI QUIT SERVICE").is_null())
+    .then(False)
+    .otherwise(True)
+    .alias("has_appt_date"),
+  ).filter(
+    (pl.col("REFERRAL TO QUIT SERVICES") != pl.col("has_referred_date"))
+    | (pl.col("REFERRAL TO QUIT SERVICES") != pl.col("has_appt_date"))
   )
 
 
