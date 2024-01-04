@@ -28,6 +28,7 @@ intervention_status_whitelist = [
   "HADIR|IV- BERJAYA BERHENTI SELAMA 6 BULAN",
 ]
 famihistcancer_whitelist = ["false|false|false", "true|true|true"]
+additionaldetails_blacklist = ["true|false|true", "true|true|false"]
 
 
 # inclusion criteria
@@ -421,6 +422,34 @@ def _validate_famihistcancer(lf: pl.LazyFrame):
   )
 
 
+@store_data(
+  RuleEnum.LESION_VS_ADDITIONAL_DETAILS,
+  ["LESION", "occupation_filled", "education_filled"],
+)
+def _validate_additionaldetails(lf: pl.LazyFrame):
+  """
+  Rule:
+  """
+  return (
+    lf.with_columns(
+      pl.when(pl.col("OCCUPATION").is_not_null())
+      .then(True)
+      .otherwise(False)
+      .alias("occupation_filled"),
+      pl.when(pl.col("EDUCATION LEVEL CODE").is_not_null())
+      .then(True)
+      .otherwise(False)
+      .alias("education_filled"),
+    )
+    .with_columns(
+      pl.concat_str(
+        ["LESION", "occupation_filled", "education_filled"], separator="|"
+      ).alias("invalid_combination")
+    )
+    .filter(pl.col("invalid_combination").is_in(additionaldetails_blacklist))
+  )
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -447,6 +476,7 @@ class ValidationGeneral:
     _validate_intervention_status,
     _validate_medihist,
     _validate_famihistcancer,
+    _validate_additionaldetails,
   ]
 
   validation_df_store = "general"

@@ -93,7 +93,8 @@ Whitelist: Valid combinations for habit descriptor (tobacco, betel quid chewing,
 
 ## Additional details
 
-### [WIP] LESION_VS_EDUCATION
+### LESION_VS_ADDITIONAL_DETAILS
+* For subjects with lesion (`LESION` == True), `EDUCATION LEVEL CODE` and `OCCUPATION` should be filled.
 
 
 ## Quit service (Appendix 5A)

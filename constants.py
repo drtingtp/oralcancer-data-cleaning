@@ -33,6 +33,9 @@ class RuleEnum(Enum):
   LESION_VS_LESION_COLS = auto()
   LESION_COLS_COMPLETENESS = auto()
 
+  # Additional details (Education and Occupation)
+  LESION_VS_ADDITIONAL_DETAILS = auto()
+
   # Quit services (Appendix 5A)
   REFERRAL_QUIT_VS_READY_QUIT = auto()
   REFERRAL_QUIT_VS_DATE_REFERRED_VS_FIRST_APPT_DATE = auto()
