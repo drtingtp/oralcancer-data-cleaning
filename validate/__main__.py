@@ -23,6 +23,9 @@ def _compile_output():
     for file_path in Path(PATH_STORE).glob(f"{store_item}/*.parquet"):
       list_df.append(pl.scan_parquet(file_path))
 
+    if len(list_df) == 0:
+      continue
+
     df: pl.LazyFrame = pl.concat(list_df)
 
     # unnest and stringify data to be written into excel
