@@ -380,6 +380,19 @@ def _validate_intervention_status(lf: pl.LazyFrame):
   )
 
 
+@store_data(RuleEnum.MEDIHIST_COMPLETENESS, ["MEDHIST", "MED HIST SPECIFY"])
+def _validate_medihist(lf: pl.LazyFrame):
+  """
+  Rule: If `MEDHIST` is True, `MED HIST SPECIFY` should be filled, and vice versa.
+  """
+  return lf.with_columns(
+    pl.when(pl.col("MED HIST SPECIFY").is_not_null())
+    .then(True)
+    .otherwise(False)
+    .alias("medihist_specify_filled")
+  ).filter(pl.col("MEDHIST") != pl.col("medihist_specify_filled"))
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -404,6 +417,7 @@ class ValidationGeneral:
     _validate_referral_quit_vs_date_referral_quit,
     _validate_attend_first_appt_null_check,
     _validate_intervention_status,
+    _validate_medihist,
   ]
 
   validation_df_store = "general"
