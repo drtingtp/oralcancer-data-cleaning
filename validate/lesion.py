@@ -169,7 +169,9 @@ class ValidationLesion:
     "DATESCREEN": pl.Date,
     "ICNUMBER": pl.Utf8,
     "lesion_id": pl.Utf8,
-    "fail": pl.Struct({"rule": pl.Utf8, "data": pl.List(pl.Utf8)}),
+    "fail": pl.Struct(
+      {"rule_number": pl.Int32, "rule": pl.Utf8, "data": pl.List(pl.Utf8)}
+    ),
   }
 
   def __init__(self, lf_general: pl.LazyFrame, file_name: str) -> None:

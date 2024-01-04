@@ -32,6 +32,7 @@ def store_data(rule_enum: RuleEnum, cols_as_data: list[str] = []):
 
       return result.with_columns(
         pl.struct(
+          pl.lit(rule_enum.value).alias("rule_number"),
           pl.lit(rule_enum.name).alias("rule"),
           pl.concat_list(
             [

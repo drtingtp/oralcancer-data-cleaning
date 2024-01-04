@@ -413,7 +413,9 @@ class ValidationGeneral:
     "LOCATION OF SCREENING": pl.Utf8,
     "DATESCREEN": pl.Date,
     "ICNUMBER": pl.Utf8,
-    "fail": pl.Struct({"rule": pl.Utf8, "data": pl.List(pl.Utf8)}),
+    "fail": pl.Struct(
+      {"rule_number": pl.Int32, "rule": pl.Utf8, "data": pl.List(pl.Utf8)}
+    ),
   }
 
   def __init__(self, lf: pl.LazyFrame, file_name: str) -> None:
