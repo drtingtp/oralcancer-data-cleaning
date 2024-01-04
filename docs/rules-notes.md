@@ -1,9 +1,5 @@
 # Validation rules notes
 
-Medihist - if ticked should be filled
-
-Famihist - needs to be complete if filled
-
 ## Backburner
 
 Screening case code - make sure if community program it has to be stated in the clinic
