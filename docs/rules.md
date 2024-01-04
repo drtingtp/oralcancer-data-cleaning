@@ -75,8 +75,8 @@ Whitelist: Valid combinations for habit descriptor (tobacco, betel quid chewing,
 ### MEDIHIST_COMPLETENESS
 * If `MEDHIST` is True, `MED HIST SPECIFY` should be filled, and vice versa.
 
-### [WIP] FAMIHISTCANCER_COMPLETENESS
-
+### FAMIHISTCANCER_COMPLETENESS
+* If `FAMILY` is True, `FAMILYHSIT SPECIFY` and `RELATION` should be filled, and vice versa.
 
 ## Lesion
 

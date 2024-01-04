@@ -27,6 +27,7 @@ intervention_status_whitelist = [
   "HADIR|III- GAGAL BERHENTI",
   "HADIR|IV- BERJAYA BERHENTI SELAMA 6 BULAN",
 ]
+famihistcancer_whitelist = ["false|false|false", "true|true|true"]
 
 
 # inclusion criteria
@@ -393,6 +394,33 @@ def _validate_medihist(lf: pl.LazyFrame):
   ).filter(pl.col("MEDHIST") != pl.col("medihist_specify_filled"))
 
 
+@store_data(
+  RuleEnum.FAMIHISTCANCER_COMPLETENESS, ["FAMILY", "specify_filled", "relation_filled"]
+)
+def _validate_famihistcancer(lf: pl.LazyFrame):
+  """
+  Rule: If `FAMILY` is True, `FAMILYHSIT SPECIFY` and `RELATION` should be filled, and vice versa.
+  """
+  return (
+    lf.with_columns(
+      pl.when(pl.col("FAMILYHSIT SPECIFY").is_not_null())
+      .then(True)
+      .otherwise(False)
+      .alias("specify_filled"),
+      pl.when(pl.col("RELATION").is_not_null())
+      .then(True)
+      .otherwise(False)
+      .alias("relation_filled"),
+    )
+    .with_columns(
+      pl.concat_str("FAMILY", "specify_filled", "relation_filled", separator="|").alias(
+        "invalid_combination"
+      )
+    )
+    .filter(~pl.col("invalid_combination").is_in(famihistcancer_whitelist))
+  )
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -418,6 +446,7 @@ class ValidationGeneral:
     _validate_attend_first_appt_null_check,
     _validate_intervention_status,
     _validate_medihist,
+    _validate_famihistcancer,
   ]
 
   validation_df_store = "general"
