@@ -9,6 +9,7 @@ from .store import store_data, ValidationStore
 from .decorator import valid_ic
 
 # constants
+today = date.today()
 this_year = date.today().year
 this_year_p1 = math.floor(this_year / 100)  # first two digits
 this_year_p2 = this_year % 100  # last two digits
@@ -343,6 +344,20 @@ def _validate_referral_quit_vs_date_referral_quit(lf: pl.LazyFrame):
   )
 
 
+@store_data(
+  RuleEnum.ATTEND_FIRST_APPT_NULL_CHECK,
+  ["TARIKH TEMUJANJI QUIT SERVICE", "HADIR QUIT SERVICES"],
+)
+def _validate_attend_first_appt_null_check(lf: pl.LazyFrame):
+  """
+  Rule: If the first appointment date for quit service is earlier than date of data validation, `HADIR QUIT SERVICES` should be filled.
+  """
+  return lf.filter(
+    (pl.col("TARIKH TEMUJANJI QUIT SERVICE") < today)
+    & pl.col("HADIR QUIT SERVICES").is_null()
+  )
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -365,6 +380,7 @@ class ValidationGeneral:
     _validate_alcohol,
     _validate_referral_quit_vs_ready_quit,
     _validate_referral_quit_vs_date_referral_quit,
+    _validate_attend_first_appt_null_check,
   ]
 
   validation_df_store = "general"

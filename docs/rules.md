@@ -88,8 +88,8 @@ Whitelist: Valid combinations for habit descriptor (tobacco, betel quid chewing,
 ### REFERRAL_QUIT_VS_DATE_REFERRED_VS_FIRST_APPT_DATE
 * If `REFERRAL TO QUIT SERVICES` is True, `DATE REFERRED QUIT SER` and `TARIKH TEMUJANJI QUIT SERVICE` should be filled, and vice versa.
 
-### [WIP]ATTEND_FIRST_APPT_NULL_CHECK
-* If the first appointment date for quit service has lapsed, `HADIR QUIT SERVICES` should be filled.
+### ATTEND_FIRST_APPT_NULL_CHECK
+* If the first appointment date for quit service is earlier than date of data validation, `HADIR QUIT SERVICES` should be filled.
 
 ### [WIP]ATTEND_FIRST_APPT_VS_INTERVENTION_STATUS
 * If `HADIR QUIT SERVICES` is not null, `STATUS INTERVENSI` should be filled.
