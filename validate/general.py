@@ -20,6 +20,13 @@ habit_whitelist = [
   "1- habit currently practiced|Yes|No",
   "2 - past habit now has stopped (minimum 6 months)|Yes|Null",
 ]
+intervention_status_whitelist = [
+  "Null|Null",
+  "TIDAK HADIR|II- GAGAL DATANG TEMUJANJI",
+  "HADIR|I- SEDANG MENERIMA RAWATAN",
+  "HADIR|III- GAGAL BERHENTI",
+  "HADIR|IV- BERJAYA BERHENTI SELAMA 6 BULAN",
+]
 
 
 # inclusion criteria
@@ -358,6 +365,21 @@ def _validate_attend_first_appt_null_check(lf: pl.LazyFrame):
   )
 
 
+@store_data(RuleEnum.ATTEND_FIRST_APPT_VS_INTERVENTION_STATUS, ["invalid_combination"])
+def _validate_intervention_status(lf: pl.LazyFrame):
+  return (
+    lf.with_columns(
+      pl.col("HADIR QUIT SERVICES", "STATUS INTERVENSI").fill_null("Null")
+    )
+    .with_columns(
+      pl.concat_str(
+        pl.col("HADIR QUIT SERVICES", "STATUS INTERVENSI"), separator=("|")
+      ).alias("invalid_combination")
+    )
+    .filter(~pl.col("invalid_combination").is_in(intervention_status_whitelist))
+  )
+
+
 class ValidationGeneral:
   """Validation object
 
@@ -381,6 +403,7 @@ class ValidationGeneral:
     _validate_referral_quit_vs_ready_quit,
     _validate_referral_quit_vs_date_referral_quit,
     _validate_attend_first_appt_null_check,
+    _validate_intervention_status,
   ]
 
   validation_df_store = "general"

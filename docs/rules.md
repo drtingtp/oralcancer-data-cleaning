@@ -91,7 +91,7 @@ Whitelist: Valid combinations for habit descriptor (tobacco, betel quid chewing,
 ### ATTEND_FIRST_APPT_NULL_CHECK
 * If the first appointment date for quit service is earlier than date of data validation, `HADIR QUIT SERVICES` should be filled.
 
-### [WIP]ATTEND_FIRST_APPT_VS_INTERVENTION_STATUS
+### ATTEND_FIRST_APPT_VS_INTERVENTION_STATUS
 * If `HADIR QUIT SERVICES` is not null, `STATUS INTERVENSI` should be filled.
 
 Whitelist: Valid combinations for attend first appointment vs intervention status:
