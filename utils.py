@@ -13,7 +13,7 @@ def get_df(path: Path) -> pl.DataFrame:
   df = pl.read_database(
     query="SELECT * FROM [DATA SHEET];",
     connection=_get_conn_str(path),
-    execute_options={"max_text_size": 100},  # for long text fields / varchar(max)
+    execute_options={"max_text_size": 220},  # for long text fields / varchar(max)
     schema_overrides={
       "DATESCREEN": pl.Date,
       "DATEBIRTH": pl.Date,
