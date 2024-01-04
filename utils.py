@@ -14,7 +14,15 @@ def get_df(path: Path) -> pl.DataFrame:
     query="SELECT * FROM [DATA SHEET];",
     connection=_get_conn_str(path),
     execute_options={"max_text_size": 100},  # for long text fields / varchar(max)
-    schema_overrides={"DATESCREEN": pl.Date, "DATEBIRTH": pl.Date},
+    schema_overrides={
+      "DATESCREEN": pl.Date,
+      "DATEBIRTH": pl.Date,
+      "DATE REFERRED": pl.Date,
+      "SPECIALIST APPT DATE": pl.Date,
+      "DATE SEEN BY SPECIALIST": pl.Date,
+      "DATE REFERRED QUIT SER": pl.Date,
+      "TARIKH TEMUJANJI QUIT SERVICE": pl.Date,
+    },
   )
 
   return df
