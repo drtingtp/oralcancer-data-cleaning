@@ -4,21 +4,19 @@
 ```mermaid
 sequenceDiagram
     participant access db
-
     participant df_source
-    destroy access db
     access db->>df_source: utils.get_df()
 
-    participant validate
+    participant Validate and ValidateStore
     participant df_output
 
     loop Rules 1, 2, 3, ...
-        df_output->>validate: arg1
-        df_source ->> validate: arg2
-        validate ->> df_output: extend output
+        df_output ->> Validate and ValidateStore: arg1
+        df_source ->> Validate and ValidateStore: arg2
+        Validate and ValidateStore ->> df_output: extend output
     end
 
-    create participant parquet_output
+    participant parquet_output
     df_output ->> parquet_output: flush as parquet file
 ```
 
@@ -32,6 +30,6 @@ sequenceDiagram
     Input -->> Store: File 2
     Input -->> Store: File ...
 
-    create participant Output
+    participant Output
     Store ->> Output: flush as excel file
 ```
