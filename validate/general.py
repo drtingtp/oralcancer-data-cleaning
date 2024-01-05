@@ -53,13 +53,13 @@ def _pipe_validate_ic(lf: pl.LazyFrame):
       .then(True)
       .otherwise(False)
       .alias("valid_ic_digits"),
-      pl.col("ICNUMBER").str.slice(0, 2).cast(pl.Int16).alias("year_p2"),
+      pl.col("ICNUMBER").str.slice(0, 2).cast(pl.Int16, strict=False).alias("year_p2"),
     )
     .with_columns(  # calculate first two digits of birth year from IC
       pl.when(pl.col("year_p2") > this_year_p2)
       .then(this_year_p1 - 1)
       .otherwise(this_year_p1)
-      .cast(pl.Utf8)
+      .cast(pl.Utf8, strict=False)
       .alias("year_p1"),
     )
     .with_columns(
