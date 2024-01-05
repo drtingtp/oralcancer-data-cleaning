@@ -49,6 +49,10 @@ def _compile_output():
 
 
 def main():
+  # clear output
+  for file_path in Path(PATH_OUTPUT).glob(f"*.xlsx"):
+    os.unlink(file_path)
+
   # loop through all *.accdb files and invoke validation classes
   for path in Path(PATH_INPUT).glob("*.accdb"):
     print(f"Validating '{path.stem}'")
