@@ -1,11 +1,24 @@
+import logging
+import logging.config
 import os
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 import polars as pl
+import yaml
 
 import utils
 from validate.general import ValidationGeneral
 from validate.lesion import ValidationLesion
+
+with open("config_log.yaml", "r") as f:
+  config = yaml.safe_load(f.read())
+  logging.config.dictConfig(config)
+
+logger = logging.getLogger("mainLogger")
+handler: RotatingFileHandler = logging.getHandlerByName("file")
+
+handler.doRollover()
 
 PATH_INPUT = os.getenv("PATH_INPUT")
 PATH_STORE = os.getenv("PATH_STORE")
@@ -47,12 +60,20 @@ def main():
     try:
       lf = utils.get_df(path).lazy()
     except Exception as e:
-      print(f"Exception occured for get_df(): {path}")
-      print(e)
+      print(f"Exception raised for utils.get_df(), path: {path}")
+      logger.exception(e)
 
-    ValidationGeneral(lf, path.stem).run_all()
+    try:
+      ValidationGeneral(lf, path.stem).run_all()
+    except Exception as e:
+      print(f"Exception raised for ValidationGeneral object: {path.stem}")
+      logger.exception(e)
 
-    ValidationLesion(lf, path.stem).run_all()
+    try:
+      ValidationLesion(lf, path.stem).run_all()
+    except Exception as e:
+      print(f"Exception raised for ValidationLesion object: {path.stem}")
+      logger.exception(e)
 
   _compile_output()
 

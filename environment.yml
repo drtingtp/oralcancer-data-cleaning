@@ -3,9 +3,9 @@ channels:
   - conda-forge
 dependencies:
   - arrow-odbc
-  - dotenv
   - ipykernel
   - polars
   - python
   - python-dotenv
+  - pyyaml
   - xlsxwriter

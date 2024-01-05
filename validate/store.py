@@ -80,12 +80,17 @@ class ValidationStore:
     )
 
   def extend_df(self, lf: pl.LazyFrame):
-    # wrap the lf with select columns required by validation_df_schema
-    # collect
-    new_output = lf.select(self.cols).collect()
+    try:
+      # wrap the lf with select columns required by validation_df_schema
+      # collect
+      new_output = lf.select(self.cols).collect()
+      # concat
+      self.df = pl.concat([self.df, new_output], how="vertical")
 
-    if new_output.is_empty():
-      return
-
-    # concat
-    self.df = pl.concat([self.df, new_output], how="vertical")
+      if new_output.is_empty():
+        return
+    except Exception as e:
+      msg = (
+        f"Unhandled exception in validate.store.extend_df(), filename: {self.file_name}"
+      )
+      raise Exception(msg) from e
