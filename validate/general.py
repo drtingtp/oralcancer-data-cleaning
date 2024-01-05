@@ -7,6 +7,7 @@ from constants import RuleEnum
 
 from .store import store_data, ValidationStore
 from .decorator import valid_ic
+from .logger import logger
 
 # constants
 today = date.today()
@@ -501,3 +502,5 @@ class ValidationGeneral:
     ) as store_handler:
       for func in self.list_all_func:
         store_handler.extend_df(func(self.lf))
+
+logger.info(f"ValidationGeneral run_all(): {len(ValidationGeneral.list_all_func)} rules")

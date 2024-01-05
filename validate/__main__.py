@@ -1,24 +1,13 @@
-import logging
-import logging.config
 import os
-from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 import polars as pl
-import yaml
 
 import utils
 from validate.general import ValidationGeneral
 from validate.lesion import ValidationLesion
 
-with open("config_log.yaml", "r") as f:
-  config = yaml.safe_load(f.read())
-  logging.config.dictConfig(config)
-
-logger = logging.getLogger("mainLogger")
-handler: RotatingFileHandler = logging.getHandlerByName("file")
-
-handler.doRollover()
+from .logger import logger
 
 PATH_INPUT = os.getenv("PATH_INPUT")
 PATH_STORE = os.getenv("PATH_STORE")

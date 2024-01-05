@@ -3,5 +3,8 @@
     "autoDocstring.docstringFormat": "numpy-notypes",
     "files.exclude": {
         "**/*.gitkeep": true
+    },
+    "files.associations": {
+        "**/logs/*": "log"
     }
 }

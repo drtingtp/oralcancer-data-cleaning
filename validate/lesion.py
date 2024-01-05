@@ -3,6 +3,7 @@ import polars as pl
 from constants import RuleEnum, list_id_cols
 
 from .lesion_colmap import col_map, chunks
+from .logger import logger
 from .store import ValidationStore, store_data
 
 REPLACE_NA = False
@@ -189,3 +190,5 @@ class ValidationLesion:
     ) as store_handler:
       for func in self.list_all_func:
         store_handler.extend_df(func(self.lf))
+
+logger.info(f"ValidationLesion run_all(): {len(ValidationLesion.list_all_func)} rules")
