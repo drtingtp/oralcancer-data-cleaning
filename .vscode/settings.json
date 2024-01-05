@@ -1,4 +1,7 @@
 {
     "jupyter.notebookFileRoot": "${workspaceFolder}",
-    "autoDocstring.docstringFormat": "numpy-notypes"
+    "autoDocstring.docstringFormat": "numpy-notypes",
+    "files.exclude": {
+        "**/*.gitkeep": true
+    }
 }
