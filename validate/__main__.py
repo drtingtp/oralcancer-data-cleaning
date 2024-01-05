@@ -25,6 +25,12 @@ PATH_STORE = os.getenv("PATH_STORE")
 PATH_OUTPUT = os.getenv("PATH_OUTPUT")
 
 
+def _log_critical(msg: str, e: Exception):
+  print(msg)
+  logger.critical(msg)
+  logger.exception(e)
+
+
 def _compile_output():
   """Compiles parquet files in store into excel file in output."""
   list_store = ["general", "lesion"]
@@ -60,20 +66,17 @@ def main():
     try:
       lf = utils.get_df(path).lazy()
     except Exception as e:
-      print(f"Exception raised for utils.get_df(), path: {path}")
-      logger.exception(e)
+      _log_critical(f"Unhandled exception in utils.get_df(), path: {path}", e)
 
     try:
       ValidationGeneral(lf, path.stem).run_all()
     except Exception as e:
-      print(f"Exception raised for ValidationGeneral object: {path.stem}")
-      logger.exception(e)
+      _log_critical(f"Unhandled exception in ValidationGeneral object: {path.stem}", e)
 
     try:
       ValidationLesion(lf, path.stem).run_all()
     except Exception as e:
-      print(f"Exception raised for ValidationLesion object: {path.stem}")
-      logger.exception(e)
+      _log_critical(f"Unhandled exception in ValidationLesion object: {path.stem}", e)
 
   _compile_output()
 
